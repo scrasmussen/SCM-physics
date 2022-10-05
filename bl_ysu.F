@@ -1343,7 +1343,7 @@
 !
 !     solve tridiagonal problem for momentum
 !
-   call tridi1n(al,ad,cu,r1,r2,au,f1,f2,its,ite,kts,kte,1)
+   call tridi2n(al,ad,ad1,cu,r1,r2,au,f1,f2,its,ite,kts,kte,1)
 !
 !     recover tendencies of momentum
 !
@@ -1432,7 +1432,7 @@
 !-------------------------------------------------------------------------------
 !
 !-------------------------------------------------------------------------------
-   subroutine tridi1n(cl,cm,cu,r1,r2,au,f1,f2,its,ite,kts,kte,nt)
+   subroutine tridi2n(cl,cm,cm1,cu,r1,r2,au,f1,f2,its,ite,kts,kte,nt)
 !-------------------------------------------------------------------------------
    implicit none
 !-------------------------------------------------------------------------------
@@ -1444,6 +1444,7 @@
 !
    real(kind=kind_phys), dimension( its:ite, kts:kte )                       , &
          intent(in   )  ::                                                 cm, &
+                                                                          cm1, &
                                                                            r1
    real(kind=kind_phys), dimension( its:ite, kts:kte,nt )                    , &
          intent(in   )  ::                                                 r2
@@ -1471,11 +1472,11 @@
 !
    do it = 1,nt
      do i = its,l
-       fk = 1./cm(i,1)
+       fk = 1./cm1(i,1)
        f2(i,1,it) = fk*r2(i,1,it)
      enddo
    enddo
-!
+
    do k = kts+1,n-1
      do i = its,l
        fk = 1./(cm(i,k)-cl(i,k)*au(i,k-1))
@@ -1487,7 +1488,7 @@
    do it = 1,nt
      do k = kts+1,n-1
        do i = its,l
-         fk = 1./(cm(i,k)-cl(i,k)*au(i,k-1))
+         fk = 1./(cm1(i,k)-cl(i,k)*au(i,k-1))
          f2(i,k,it) = fk*(r2(i,k,it)-cl(i,k)*f2(i,k-1,it))
        enddo
      enddo
@@ -1500,7 +1501,7 @@
 !
    do it = 1,nt
      do i = its,l
-       fk = 1./(cm(i,n)-cl(i,n)*au(i,n-1))
+       fk = 1./(cm1(i,n)-cl(i,n)*au(i,n-1))
        f2(i,n,it) = fk*(r2(i,n,it)-cl(i,n)*f2(i,n-1,it))
      enddo
    enddo
@@ -1519,7 +1520,7 @@
      enddo
    enddo
 !
-   end subroutine tridi1n
+   end subroutine tridi2n
 !-------------------------------------------------------------------------------
 !
 !-------------------------------------------------------------------------------
