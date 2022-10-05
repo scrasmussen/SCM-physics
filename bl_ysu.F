@@ -31,6 +31,10 @@
                          rthraten,                                         &
                          ysu_topdown_pblmix,                               &
                          ctopo,ctopo2,                                     &
+                         a_u,a_v,a_t,a_q,a_e,                              &
+                         b_u,b_v,b_t,b_q,b_e,                              &
+                         sfk,vlk,dlu,dlg,frcurb,                           &
+                         flag_bep,                                         &
                          its,ite,kte,kme,                                  &
                          errmsg,errflg                                     &
                         )
@@ -84,9 +88,11 @@
 !              ==> kzo = 0.1 for momentum and = 0.01 for mass to account for
 !                  internal wave mixing of large et al. (1994), songyou hong, feb 2016
 !              ==> alleviate superious excessive mixing when delz is large
+!              add multilayer urban canopy models of BEP and BEP+BEM, jan 2021
 !
 !     references:
 !
+!        hendricks, knievel, and wang (2020), j. appl. meteor. clim.
 !        hong (2010) quart. j. roy. met. soc
 !        hong, noh, and dudhia (2006), mon. wea. rev.
 !        hong and pan (1996), mon. wea. rev.
@@ -182,6 +188,27 @@
              intent(in   )   ::                                         ctopo, &
                                                                        ctopo2
 !
+   logical,  intent(in   )   ::                                      flag_bep
+   real(kind=kind_phys),     dimension( its:ite, kts:kte )                   , &
+             optional                                                        , &
+             intent(in   )   ::                                           a_u, &
+                                                                          a_v, &
+                                                                          a_t, &
+                                                                          a_q, &
+                                                                          a_e, &
+                                                                          b_u, &
+                                                                          b_v, &
+                                                                          b_t, &
+                                                                          b_q, &
+                                                                          b_e, &
+                                                                          sfk, &
+                                                                          vlk, &
+                                                                          dlu, &
+                                                                          dlg
+   real(kind=kind_phys),     dimension( its:ite )                            , &
+             optional                                                        , &
+             intent(in   )   ::                                        frcurb
+!
    character(len=*), intent(out)   ::                                  errmsg
    integer,          intent(out)   ::                                  errflg
 
@@ -221,7 +248,8 @@
                                                                            al, &
                                                                          zfac, &
                                                                         rhox2, &
-                                                                       hgamt2
+                                                                       hgamt2, &
+                                                                  ad1,adm,adv
 !
 !jdf added exch_hx
 !
@@ -293,9 +321,19 @@
                                                                       buoy_ysu
    real(kind=kind_phys),    dimension( its:ite) ::                    pblh_ysu,&
                                                                        vconvfx
+!
+   real(kind=kind_phys)      ::                                      bepswitch
+
+   real(kind=kind_phys),    dimension( its:ite, kts:kte )    ::                &
+               a_u2d,a_v2d,a_t2d,a_q2d,a_e2d,b_u2d,b_v2d,b_t2d,b_q2d,b_e2d,    &
+               sfk2d,vlk2d,dlu2d,dlg2d
+   real(kind=kind_phys),    dimension( its:ite )             ::                &
+               frc_urb1d
 
    real(kind=kind_phys),     dimension( kts:kte )   :: dummy1,dummy2,dummy4
    real(kind=kind_phys),     dimension( kms:kme )   :: dummy3
+
+   real(kind=kind_phys):: temp1,temp2
 !
 !-------------------------------------------------------------------------------
 !
@@ -368,6 +406,60 @@
      rhox(i) = psfcpa(i)/(rd*tx(i,1)*tvcon)
      govrth(i) = g/thx(i,1)
    enddo
+!
+   if(present(a_u) .and. present(a_v) .and. present(a_t) .and. &
+      present(a_q) .and. present(a_t) .and. present(a_e) .and. &
+      present(b_u) .and. present(b_v) .and. present(b_t) .and. &
+      present(b_q) .and. present(b_e) .and. present(dlg) .and. &
+      present(dlu) .and. present(sfk) .and. present(vlk) .and. &
+      present(frcurb) .and. flag_bep) then
+
+      bepswitch=1.0
+      do k = kts, kte
+         do i = its,ite
+            a_u2d(i,k) = a_u(i,k)
+            a_v2d(i,k) = a_v(i,k)
+            a_t2d(i,k) = a_t(i,k)
+            a_q2d(i,k) = a_q(i,k)
+            a_e2d(i,k) = a_e(i,k)
+            b_u2d(i,k) = b_u(i,k)
+            b_v2d(i,k) = b_v(i,k)
+            b_t2d(i,k) = b_t(i,k)
+            b_q2d(i,k) = b_q(i,k)
+            b_e2d(i,k) = b_e(i,k)
+            dlg2d(i,k) = dlg(i,k)
+            dlu2d(i,k) = dlu(i,k)
+            vlk2d(i,k) = vlk(i,k)
+            sfk2d(i,k) = sfk(i,k)
+         enddo
+      enddo
+      do i = its, ite
+         frc_urb1d(i) = frcurb(i)
+      enddo
+   else
+      bepswitch=0.0
+      do k = kts, kte
+         do i = its,ite
+            a_u2d(i,k) = 0.0
+            a_v2d(i,k) = 0.0
+            a_t2d(i,k) = 0.0
+            a_q2d(i,k) = 0.0
+            a_e2d(i,k) = 0.0
+            b_u2d(i,k) = 0.0
+            b_v2d(i,k) = 0.0
+            b_t2d(i,k) = 0.0
+            b_q2d(i,k) = 0.0
+            b_e2d(i,k) = 0.0
+            dlg2d(i,k) = 0.0
+            dlu2d(i,k) = 0.0
+            vlk2d(i,k) = 1.0
+            sfk2d(i,k) = 1.0
+         enddo
+      enddo
+      do i = its, ite
+         frc_urb1d(i) = 0.0
+      enddo
+   endif
 !
 !-----compute the height of full- and half-sigma levels above ground
 !     level, and the layer thicknesses.
@@ -909,13 +1001,13 @@
 !
    do i = its,ite
      ad(i,1) = 1.
-     f1(i,1) = thx(i,1)-300.+hfx(i)/cont/del(i,1)*dt2
+     f1(i,1) = thx(i,1)-300.+(1.0-bepswitch)*hfx(i)/cont/del(i,1)*dt2
    enddo
 !
    do k = kts,kte-1
      do i = its,ite
-       dtodsd = dt2/del(i,k)
-       dtodsu = dt2/del(i,k+1)
+       dtodsd = sfk2d(i,k)*dt2/del(i,k)
+       dtodsu = sfk2d(i,k)*dt2/del(i,k+1)
        dsig   = p2d(i,k)-p2d(i,k+1)
        rdz    = 1./dza(i,k+1)
        tem1   = dsig*xkzh(i,k)*rdz
@@ -934,11 +1026,20 @@
        endif
        tem1   = dsig*xkzh(i,k)*rdz
        dsdz2     = tem1*rdz
-       au(i,k)   = -dtodsd*dsdz2
-       al(i,k)   = -dtodsu*dsdz2
+       au(i,k)   = -dtodsd*dsdz2/vlk2d(i,k)
+       al(i,k)   = -dtodsu*dsdz2/vlk2d(i,k)
        ad(i,k)   = ad(i,k)-au(i,k)
        ad(i,k+1) = 1.-al(i,k)
        exch_hx(i,k+1) = xkzh(i,k)
+     enddo
+   enddo
+!
+! add bep/bep+bem forcing for heat if flag_bep=.true.
+!
+   do k = kts,kte
+     do i = its,ite
+      ad(i,k) = ad(i,k) - a_t2d(i,k)*dt2
+      f1(i,k) = f1(i,k) + b_t2d(i,k)*dt2
      enddo
    enddo
 !
@@ -990,11 +1091,11 @@
 
       k = 1
       ad(i,1) = 1.
-      f1(i,1) = qvx(i,1)+qfx(i)*g/del(i,1)*dt2
+      f1(i,1) = qvx(i,1)+(1.0-bepswitch)*qfx(i)*g/del(i,1)*dt2
 
       do k = kts,kte-1
-         dtodsd = dt2/del(i,k)
-         dtodsu = dt2/del(i,k+1)
+         dtodsd = sfk2d(i,k)*dt2/del(i,k)
+         dtodsu = sfk2d(i,k)*dt2/del(i,k+1)
          dsig   = p2d(i,k)-p2d(i,k+1)
          rdz    = 1./dza(i,k+1)
          tem1   = dsig*xkzq(i,k)*rdz
@@ -1013,10 +1114,17 @@
          endif
          tem1      = dsig*xkzq(i,k)*rdz
          dsdz2     = tem1*rdz
-         au(i,k)   = -dtodsd*dsdz2
-         al(i,k)   = -dtodsu*dsdz2
+         au(i,k)   = -dtodsd*dsdz2/vlk2d(i,k)
+         al(i,k)   = -dtodsu*dsdz2/vlk2d(i,k)
          ad(i,k)   = ad(i,k)-au(i,k)
          ad(i,k+1) = 1.-al(i,k)
+      enddo
+!
+! add bep/bep+bem forcing for water vapor if flag_bep=.true.
+!
+      do k = kts,kte
+         adv(i,k) = ad(i,k) - a_q2d(i,k)*dt2
+         f1(i,k)  = f1(i,k) + b_q2d(i,k)*dt2
       enddo
 
       do k = kts,kte
@@ -1024,7 +1132,7 @@
          r1(i,k) = f1(i,k)
       enddo
    enddo
-   call tridin_ysu(al,ad,cu,r1,au,f1,its,ite,kts,kte,1)
+   call tridin_ysu(al,adv,cu,r1,au,f1,its,ite,kts,kte,1)
 
    do i = its,ite
       do k = kte,kts,-1
@@ -1161,8 +1269,12 @@
         vconvnew=0.9*vconvfx(i)+1.5*(max((pblh_ysu(i)-500)/1000.0,0.0))
         vconvlim = min(vconvnew,1.0)
         ad(i,1) = 1.+fric(i,1)*vconvlim+ctopo(i)*fric(i,1)*(1-vconvlim)
+        ad(i,1) = ad(i,1) - bepswitch*frc_urb1d(i)* &
+                     (fric(i,1)*vconvlim+ctopo(i)*fric(i,1)*(1-vconvlim))
+!       ad(i,1) = 1.+(1.-bepswitch*frc_urb1d(i))* &
+!                    (fric(i,1)*vconvlim+ctopo(i)*fric(i,1)*(1-vconvlim))
       else
-       ad(i,1) = 1.+fric(i,1)
+        ad(i,1) = 1.+fric(i,1)
       endif
      f1(i,1) = ux(i,1)+uoxl(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
      f2(i,1) = vx(i,1)+voxl(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
@@ -1170,8 +1282,8 @@
 !
    do k = kts,kte-1
      do i = its,ite
-       dtodsd = dt2/del(i,k)
-       dtodsu = dt2/del(i,k+1)
+       dtodsd = sfk2d(i,k)*dt2/del(i,k)
+       dtodsu = sfk2d(i,k)*dt2/del(i,k+1)
        dsig   = p2d(i,k)-p2d(i,k+1)
        rdz    = 1./dza(i,k+1)
        tem1   = dsig*xkzm(i,k)*rdz
@@ -1195,11 +1307,27 @@
        endif
        tem1   = dsig*xkzm(i,k)*rdz
        dsdz2     = tem1*rdz
-       au(i,k)   = -dtodsd*dsdz2
-       al(i,k)   = -dtodsu*dsdz2
+       au(i,k)   = -dtodsd*dsdz2/vlk2d(i,k)
+       al(i,k)   = -dtodsu*dsdz2/vlk2d(i,k)
        ad(i,k)   = ad(i,k)-au(i,k)
        ad(i,k+1) = 1.-al(i,k)
        exch_mx(i,k+1) = xkzm(i,k)
+     enddo
+   enddo
+!
+! add bep/bep+bem forcing for momentum if flag_bep=.true.
+!
+   do k = kts,kte
+     do i = its,ite
+       ad1(i,k) = ad(i,k)
+     end do
+   end do
+   do k = kts,kte
+     do i = its,ite
+       ad(i,k) = ad(i,k) - a_u2d(i,k)*dt2
+       ad1(i,k) = ad1(i,k) - a_v2d(i,k)*dt2
+       f1(i,k) = f1(i,k) + b_u2d(i,k)*dt2
+       f2(i,k) = f2(i,k) + b_v2d(i,k)*dt2
      enddo
    enddo
 !
