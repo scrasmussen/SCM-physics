@@ -7,7 +7,8 @@ dummy:
 
 OBJS = \
 	bl_gwdo.o \
-	bl_ysu.o
+	bl_ysu.o  \
+	sf_sfclayrev.o
 
 physics_mmm: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
