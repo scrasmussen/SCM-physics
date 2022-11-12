@@ -5,9 +5,11 @@
 
  implicit none
  private
- public:: sf_sfclayrev_run,          &
-          sf_sfclayrev_init,         &
-          sf_sfclayrev_timestep_init
+ public:: sf_sfclayrev_run,           &
+          sf_sfclayrev_init,          &
+          sf_sfclayrev_final,         &
+          sf_sfclayrev_timestep_init, &
+          sf_sfclayrev_timestep_final
 
 
  real(kind=kind_phys),parameter:: vconvc= 1.
@@ -22,7 +24,7 @@
 
 !=================================================================================================================
  subroutine sf_sfclayrev_timestep_init(its,ite,kts,kte,dz2d,u2d,v2d,qv2d,p2d,t2d, &
-                                       dz1d,u1d,v1d,qv1d,p1d,t1d)
+                                       dz1d,u1d,v1d,qv1d,p1d,t1d,errmsg,errflg)
 !=================================================================================================================
 
 !--- input arguments:
@@ -32,6 +34,9 @@
     dz2d,u2d,v2d,qv2d,p2d,t2d
 
 !--- output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
  real(kind=kind_phys),intent(out),dimension(its:ite):: &
     dz1d,u1d,v1d,qv1d,p1d,t1d
 
@@ -49,7 +54,71 @@
     t1d(i)  = t2d(i,kts)
  enddo
 
+ errmsg = 'sf_sfclayrev_timestep_init OK'
+ errflg = 0
+
  end subroutine sf_sfclayrev_timestep_init
+
+!=================================================================================================================
+ subroutine sf_sfclayrev_timestep_final(errmsg,errflg)
+!=================================================================================================================
+
+!--- output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
+!-----------------------------------------------------------------------------------------------------------------
+
+ errmsg = 'sf_sfclayrev_timestep_final OK'
+ errflg = 0
+
+ end subroutine sf_sfclayrev_timestep_final
+
+!=================================================================================================================
+ subroutine sf_sfclayrev_init(errmsg,errflg)
+!=================================================================================================================
+
+!--- output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
+!local variables:
+ integer:: n
+ real(kind=kind_phys):: zolf
+
+!-----------------------------------------------------------------------------------------------------------------
+
+ do n = 0,1000
+! stable function tables
+    zolf = float(n)*0.01
+    psim_stab(n)=psim_stable_full(zolf)
+    psih_stab(n)=psih_stable_full(zolf)
+
+! unstable function tables
+    zolf = -float(n)*0.01
+    psim_unstab(n)=psim_unstable_full(zolf)
+    psih_unstab(n)=psih_unstable_full(zolf)
+ enddo
+
+ errmsg = 'sf_sfclayrev_init OK'
+ errflg = 0
+
+ end subroutine sf_sfclayrev_init
+
+!=================================================================================================================
+ subroutine sf_sfclayrev_final(errmsg,errflg)
+!=================================================================================================================
+
+!--- output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
+!-----------------------------------------------------------------------------------------------------------------
+
+ errmsg = 'sf_sfclayrev_final OK'
+ errflg = 0
+
+ end subroutine sf_sfclayrev_final
 
 !=================================================================================================================
  subroutine sf_sfclayrev_run(ux,vx,t1d,qv1d,p1d,dz8w1d,                &
@@ -64,7 +133,7 @@
                              shalwater_z0,water_depth,shalwater_depth, & 
                              isftcflx,iz0tlnd,scm_force_flux,          &
                              ustm,ck,cka,cd,cda,                       &
-                             its,ite                                   &
+                             its,ite,errmsg,errflg                     &
                             )
 !=================================================================================================================
 
@@ -100,6 +169,9 @@
     t1d
 
 !--- output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
  real(kind=kind_phys),intent(out),dimension(its:ite):: &
     lh,         &
     u10,        &
@@ -884,29 +956,10 @@
 !  enddo
 !jdf
 
-!                                                                                
+ errmsg = 'sf_sfclayrev_run OK'
+ errflg = 0
+
  end subroutine sf_sfclayrev_run
-
-!=================================================================================================================
- subroutine sf_sfclayrev_init( )
-!=================================================================================================================
-
- integer:: n
- real(kind=kind_phys):: zolf
-
- do n = 0,1000
-! stable function tables
-    zolf = float(n)*0.01
-    psim_stab(n)=psim_stable_full(zolf)
-    psih_stab(n)=psih_stable_full(zolf)
- 
-! unstable function tables
-    zolf = -float(n)*0.01
-    psim_unstab(n)=psim_unstable_full(zolf)
-    psih_unstab(n)=psih_unstable_full(zolf)
- enddo
-
- end subroutine sf_sfclayrev_init
 
 !=================================================================================================================
  real(kind=kind_phys) function zolri(ri,z,z0)
