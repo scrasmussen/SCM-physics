@@ -23,8 +23,8 @@
 
 
 !=================================================================================================================
- subroutine sf_sfclayrev_timestep_init(its,ite,kts,kte,dz2d,u2d,v2d,qv2d,p2d,t2d, &
-                                       dz1d,u1d,v1d,qv1d,p1d,t1d,errmsg,errflg)
+ subroutine sf_sfclayrev_timestep_init(dz2d,u2d,v2d,qv2d,p2d,t2d,dz1d,u1d,v1d,qv1d,p1d,t1d, &
+                                       its,ite,kts,kte,errmsg,errflg)
 !=================================================================================================================
 
 !--- input arguments:
