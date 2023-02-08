@@ -8,13 +8,20 @@ dummy:
 OBJS = \
 	bl_gwdo.o \
 	bl_ysu.o  \
-	sf_sfclayrev.o
+	mp_wsm6_effectRad.o \
+	mp_wsm6.o \
+	sf_sfclayrev.o \
+	module_libmassv.o
 
 physics_mmm: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
 
 # DEPENDENCIES:
+mp_wsm6_effectRad.o: \
+	mp_wsm6.o
 
+mp_wsm6.o: \
+	module_libmassv.o
 
 clean:
 	$(RM) *.f90 *.o *.mod
