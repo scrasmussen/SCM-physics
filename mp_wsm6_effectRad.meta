@@ -4,7 +4,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = error message for error handling in CCPP
-  units = 1 
+  units = 1
   dimensions = ()
   type = character
   kind = len=*
@@ -24,7 +24,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = error message for error handling in CCPP
-  units = 1 
+  units = 1
   dimensions = ()
   type = character
   kind = len=*

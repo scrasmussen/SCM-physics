@@ -1,7 +1,7 @@
 !=================================================================================================================
  module mp_wsm6_effectrad
  use ccpp_kinds,only: kind_phys
- use mpas_log
+
 
  use mp_wsm6,only: alpha,n0s,n0smax,pidn0s,pidnc
 
@@ -51,11 +51,11 @@
                                   re_qc_max,re_qi_max,re_qs_max,re_qc,re_qi,re_qs,its,ite,kts,kte, &
                                   errmsg,errflg)
 !=================================================================================================================
-!  Compute radiation effective radii of cloud water, ice, and snow for 
+!  Compute radiation effective radii of cloud water, ice, and snow for
 !  single-moment microphysics.
 !  These are entirely consistent with microphysics assumptions, not
 !  constant or otherwise ad hoc as is internal to most radiation
-!  schemes.  
+!  schemes.
 !  Coded and implemented by Soo ya Bae, KIAPS, January 2015.
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -102,8 +102,6 @@
  real(kind=kind_phys),parameter:: nc0  = 3.E8
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine mp_wsm6_effectRad_run:') 
 
  if(.not. do_microp_re) return
 
@@ -143,7 +141,7 @@
    do k = kts,kte
      do i = its,ite
        if (rqc(i,k).le.R1) CYCLE
-       lamdac = (pidnc*nc0/rqc(i,k))**obmr 
+       lamdac = (pidnc*nc0/rqc(i,k))**obmr
        re_qc(i,k) =  max(2.51E-6,min(1.5*(1.0/lamdac),re_qc_max))
      enddo
    enddo
@@ -161,25 +159,12 @@
 
  if (has_qs) then
    do i = its,ite
-!     if(i .eq. 722) then
-!        call mpas_log_write(' ')
-!        call mpas_log_write('--- effectRad_wsm6:')
-!        write(0,*)
-!        write(0,*) '--- effectRad_wsm6:'
-!     endif
      do k = kts,kte
        if (rqs(i,k).le.R1) CYCLE
        supcol = t0c-t(i,k)
        n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),1.)
        lamdas = sqrt(sqrt(pidn0s*n0sfac/rqs(i,k)))
        re_qs(i,k) = max(25.E-6,min(0.5*(1./lamdas),re_qs_max))
-!      if(i.eq.722 .and. k.gt.15 .and. k.lt.25) then
-!         call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/), &
-!                   realArgs=(/t0c,t(i,k),supcol,n0sfac,lamdas,re_qs(i,k)/))
-!      endif
-!      if(i.eq.722 .and. k.gt.15 .and. k.lt.25) then
-!         write(0,*) i,k,t0c,t(i,k),supcol,n0sfac,lamdas,re_qs(i,k)
-!      endif
      enddo
    enddo
  endif
@@ -195,9 +180,6 @@
 
  errmsg = 'mp_wsm6_effectRad_run OK'
  errflg = 0
-
- call mpas_log_write('--- exit subroutine mp_wsm6_effectRad_run:') 
- call mpas_log_write(' ')
 
  end subroutine mp_wsm6_effectRad_run
 

@@ -1,6 +1,5 @@
 !=================================================================================================================
  module mp_wsm6
- use mpas_log
  use ccpp_kinds,only: kind_phys
  use module_libmassv,only: vrec,vsqrt
 
@@ -193,7 +192,7 @@
                         its,ite,kts,kte,errmsg,errflg         &
                        )
 !=================================================================================================================!
-!  This code is a 6-class GRAUPEL phase microphyiscs scheme (WSM6) of the 
+!  This code is a 6-class GRAUPEL phase microphyiscs scheme (WSM6) of the
 !  Single-Moment MicroPhyiscs (WSMMP). The WSMMP assumes that ice nuclei
 !  number concentration is a function of temperature, and seperate assumption
 !  is developed, in which ice crystal number concentration is a function
@@ -298,7 +297,7 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
                                                          rslope2, &
                                                          rslope3, &
                                                          rslopeb, &
-                                                         qrs_tmp, & 
+                                                         qrs_tmp, &
                                                             falk, &
                                                             fall, &
                                                            work1
@@ -350,13 +349,13 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
                                                          denqrs1, &
                                                          denqrs2, &
                                                          denqrs3, &
-                                                          denqci, & 
+                                                          denqci, &
                                                           n0sfac
  real(kind=kind_phys),dimension(its:ite)::                        &
                                                          delqrs1, &
                                                          delqrs2, &
                                                          delqrs3, &
-                                                           delqi  
+                                                           delqi
  real(kind=kind_phys),dimension(its:ite)::                        &
                                                        tstepsnow, &
                                                       tstepgraup
@@ -374,7 +373,7 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
             fallsum, fallsum_qsi, fallsum_qg,                     &
             vt2i,vt2r,vt2s,vt2g,acrfac,egs,egi,                   &
             xlwork2, factor, source, value,                       &
-            xlf, pfrzdtc, pfrzdtr, supice, alpha2, delta2, delta3  
+            xlf, pfrzdtc, pfrzdtr, supice, alpha2, delta2, delta3
  real(kind=kind_phys):: vt2ave
  real(kind=kind_phys):: holdc, holdci
  integer:: i, j, k, mstepmax,                                     &
@@ -987,7 +986,7 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
        endif
 !-------------------------------------------------------------
 ! paacw: accretion of cloud water by averaged snow/graupel
-!        (T<T0: C->G or S, and T>=T0: C->R) 
+!        (T<T0: C->G or S, and T>=T0: C->R)
 !-------------------------------------------------------------
        if(qsum(i,k) .gt. 1.e-15) then
          paacw(i,k) = (qs(i,k)*psacw(i,k)+qg(i,k)*pgacw(i,k))               &
@@ -1038,7 +1037,7 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
 !
 !-------------------------------------------------------------
 ! pgacs: accretion of snow by graupel [HL A13] [LFO 29]
-!        (S->G): This process is eliminated in V3.0 with the 
+!        (S->G): This process is eliminated in V3.0 with the
 !        new combined snow/graupel fall speeds
 !-------------------------------------------------------------
        if(qg(i,k).gt.qcrmin.and.qs(i,k).gt.qcrmin) then
@@ -2246,100 +2245,6 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
  enddo i_loop
 
  end subroutine nislfv_rain_plm6
-
-!=================================================================================================================
- subroutine effectRad_wsm6(t,qc,qi,qs,rho,qmin,t0c,re_qc,re_qi,re_qs,kts,kte,ii,jj)
-!=================================================================================================================
-!  Compute radiation effective radii of cloud water, ice, and snow for 
-!  single-moment microphysics.
-!  These are entirely consistent with microphysics assumptions, not
-!  constant or otherwise ad hoc as is internal to most radiation
-!  schemes.  
-!  Coded and implemented by Soo ya Bae, KIAPS, January 2015.
-!-----------------------------------------------------------------------
-
-
-!..Sub arguments
-      integer, intent(in) :: kts, kte, ii, jj
-      real, intent(in) :: qmin
-      real, intent(in) :: t0c
-      real, dimension( kts:kte ), intent(in)::  t
-      real, dimension( kts:kte ), intent(in)::  qc
-      real, dimension( kts:kte ), intent(in)::  qi
-      real, dimension( kts:kte ), intent(in)::  qs
-      real, dimension( kts:kte ), intent(in)::  rho
-      real, dimension( kts:kte ), intent(inout):: re_qc
-      real, dimension( kts:kte ), intent(inout):: re_qi
-      real, dimension( kts:kte ), intent(inout):: re_qs
-!..Local variables
-      integer:: i,k
-      integer :: inu_c
-      real, dimension( kts:kte ):: ni
-      real, dimension( kts:kte ):: rqc
-      real, dimension( kts:kte ):: rqi
-      real, dimension( kts:kte ):: rni
-      real, dimension( kts:kte ):: rqs
-      real :: temp
-      real :: lamdac
-      real :: supcol, n0sfac, lamdas
-      real :: diai      ! diameter of ice in m
-      logical :: has_qc, has_qi, has_qs
-!..Minimum microphys values
-      real, parameter :: R1 = 1.E-12
-      real, parameter :: R2 = 1.E-6
-!..Mass power law relations:  mass = am*D**bm
-      real, parameter :: bm_r = 3.0
-      real, parameter :: obmr = 1.0/bm_r
-      real, parameter :: nc0  = 3.E8
-
-!-----------------------------------------------------------------------------------------------------------------
-      has_qc = .false.
-      has_qi = .false.
-      has_qs = .false.
-
-      do k = kts, kte
-        ! for cloud
-        rqc(k) = max(R1, qc(k)*rho(k))
-        if (rqc(k).gt.R1) has_qc = .true.
-        ! for ice
-        rqi(k) = max(R1, qi(k)*rho(k))
-        temp = (rho(k)*max(qi(k),qmin))
-        temp = sqrt(sqrt(temp*temp*temp))
-        ni(k) = min(max(5.38e7*temp,1.e3),1.e6)
-        rni(k)= max(R2, ni(k)*rho(k))
-        if (rqi(k).gt.R1 .and. rni(k).gt.R2) has_qi = .true.
-        ! for snow
-        rqs(k) = max(R1, qs(k)*rho(k))
-        if (rqs(k).gt.R1) has_qs = .true.
-      enddo
-
-      if (has_qc) then
-        do k=kts,kte
-          if (rqc(k).le.R1) CYCLE
-          lamdac   = (pidnc*nc0/rqc(k))**obmr 
-          re_qc(k) =  max(2.51E-6,min(1.5*(1.0/lamdac),50.E-6))
-        enddo
-      endif
-
-     if (has_qi) then
-        do k=kts,kte
-          if (rqi(k).le.R1 .or. rni(k).le.R2) CYCLE
-          diai = 11.9*sqrt(rqi(k)/ni(k))
-          re_qi(k) = max(10.01E-6,min(0.75*0.163*diai,125.E-6))
-        enddo
-      endif
-
-      if (has_qs) then
-        do k=kts,kte
-          if (rqs(k).le.R1) CYCLE
-          supcol = t0c-t(k)
-          n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),1.)
-          lamdas = sqrt(sqrt(pidn0s*n0sfac/rqs(k)))
-          re_qs(k) = max(25.E-6,min(0.5*(1./lamdas), 999.E-6))
-        enddo
-      endif
-
-      end subroutine effectRad_wsm6
 
 !=================================================================================================================
  end module mp_wsm6
