@@ -29,6 +29,18 @@
  real(kind=kind_phys),parameter:: cprcon  = 1.4e-3
  real(kind=kind_phys),parameter:: pgcoef  = 0.7
 
+ real(kind=kind_phys):: rcpd
+ real(kind=kind_phys):: c2es
+ real(kind=kind_phys):: c5les
+ real(kind=kind_phys):: c5ies
+ real(kind=kind_phys):: r5alvcp
+ real(kind=kind_phys):: r5alscp
+ real(kind=kind_phys):: ralvdcp
+ real(kind=kind_phys):: ralsdcp
+ real(kind=kind_phys):: ralfdcp
+ real(kind=kind_phys):: vtmpc1
+ real(kind=kind_phys):: zrg
+
  logical,parameter:: nonequil = .true.
  logical,parameter:: lmfpen   = .true.
  logical,parameter:: lmfmid   = .true.
@@ -48,11 +60,46 @@
 
  implicit none
  private
- public:: cu_ntiedtke_final
+ public:: cu_ntiedtke_init,  &
+          cu_ntiedtke_final
 
 
  contains
 
+
+!=================================================================================================================
+ subroutine cu_ntiedtke_init(con_cp,con_rd,con_rv,con_xlv,con_xls,con_xlf,con_grav)
+!=================================================================================================================
+
+!input arguments:
+ real(kind=kind_phys),intent(in):: &
+    con_cp,  &
+    con_rd,  &
+    con_rv,  &
+    con_xlv, &
+    con_xls, &
+    con_xlf, &
+    con_grav
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine cu_ntiedtke_init:')
+
+ rcpd    = 1.0/con_cp
+ c2es    = c1es*con_rd/con_rv
+ c5les   = c3les*(tmelt-c4les)
+ c5ies   = c3ies*(tmelt-c4ies)
+ r5alvcp = c5les*con_xlv*rcpd
+ r5alscp = c5ies*con_xls*rcpd
+ ralvdcp = con_xlv*rcpd
+ ralsdcp = con_xls*rcpd
+ ralfdcp = con_xlf*rcpd
+ vtmpc1  = con_rv/con_rd-1.0
+ zrg     = 1.0/con_grav
+
+ call mpas_log_write('--- end subroutine cu_ntiedtke_init:')
+
+ end subroutine cu_ntiedtke_init
 
 !=================================================================================================================
  subroutine cu_ntiedtke_final(errmsg,errflg)
