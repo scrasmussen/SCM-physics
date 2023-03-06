@@ -10,7 +10,10 @@
  real(kind=kind_phys):: alf
  real(kind=kind_phys):: als
  real(kind=kind_phys):: alv
+ real(kind=kind_phys):: cpd
  real(kind=kind_phys):: g
+ real(kind=kind_phys):: rd
+ real(kind=kind_phys):: rv
 
  real(kind=kind_phys),parameter:: t13   = 1.0/3.0
  real(kind=kind_phys),parameter:: tmelt = 273.16
@@ -92,7 +95,10 @@
  alf = con_xlf
  als = con_xls
  alv = con_xlv
+ cpd = con_cp
  g   = con_grav
+ rd  = con_rd
+ rv  = con_rv
 
  rcpd    = 1.0/con_cp
  c2es    = c1es*con_rd/con_rv
