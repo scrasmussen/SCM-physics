@@ -7,6 +7,10 @@
  implicit none
  save
 
+ real(kind=kind_phys):: alf
+ real(kind=kind_phys):: als
+ real(kind=kind_phys):: alv
+ real(kind=kind_phys):: g
 
  real(kind=kind_phys),parameter:: t13   = 1.0/3.0
  real(kind=kind_phys),parameter:: tmelt = 273.16
@@ -84,6 +88,11 @@
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine cu_ntiedtke_init:')
+
+ alf = con_xlf
+ als = con_xls
+ alv = con_xlv
+ g   = con_grav
 
  rcpd    = 1.0/con_cp
  c2es    = c1es*con_rd/con_rv
