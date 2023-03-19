@@ -69,6 +69,7 @@
  private
  public:: cu_ntiedtke_init,          &
           cu_ntiedtke_final,         &
+          cu_ntiedtke_timestep_init, &
           cu_ntiedtke_timestep_final
 
 
@@ -133,6 +134,75 @@
  end subroutine cu_ntiedtke_final
 
 !=================================================================================================================
+ subroutine cu_ntiedtke_timestep_init(its,ite,kts,kte,grav,dz,pres,presi,rho,w,prsl,prsi,ghtl,ghti,omg, &
+                                      errmsg,errflg)
+!=================================================================================================================
+
+!--- input arguments:
+ integer,intent(in):: its,ite,kts,kte
+
+ real(kind=kind_phys),intent(in):: grav
+ real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: dz,pres,rho
+ real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+1):: presi,w
+
+!--- inout arguments:
+ real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: ghtl,omg,prsl
+ real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte+1):: ghti,prsi
+
+!--- output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
+!--- local variables and arrays:
+ integer:: i,k,pp,zz
+
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: zl,dot
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: zi
+
+!-----------------------------------------------------------------------------------------------------------------
+
+ k = kts
+ do i = its,ite
+    zi(i,k) = 0.
+ enddo
+ do k = kts,kte
+    do i = its,ite
+       zi(i,k+1) = zi(i,k)+dz(i,k)
+    enddo
+ enddo
+ do k = kts,kte
+    do i = its,ite
+       zl(i,k)  = 0.5*(zi(i,k)+zi(i,k+1))
+       dot(i,k) = -0.5*grav*rho(i,k)*(w(i,k)+w(i,k+1))
+    enddo
+ enddo
+
+ pp = 0
+ do k = kts,kte+1
+    zz = kte + 1 - pp
+    do i = its,ite
+       ghti(i,zz) = zi(i,k)
+       prsi(i,zz) = presi(i,k)
+    enddo
+    pp = pp + 1
+ enddo
+ pp = 0
+ do k = kts,kte
+    zz = kte-pp
+    do i = its,ite
+       ghtl(i,zz) = zl(i,k)
+       omg(i,zz)  = dot(i,k)
+       prsl(i,zz) = pres(i,k)
+    enddo
+    pp = pp + 1
+ enddo
+
+ errmsg = 'cu_ntiedtke_timestep_init OK'
+ errflg = 0
+
+ end subroutine cu_ntiedtke_timestep_init
+
+!=================================================================================================================
  subroutine cu_ntiedtke_timestep_final(its,ite,kts,kte,stepcu,dt,exner,qv,qc,qi,t,u,v,qvf,qcf,qif,tf,uf,vf,rn, &
                               raincv,pratec,rthcuten,rqvcuten,rqccuten,rqicuten,rucuten,rvcuten,errmsg,errflg)
 !=================================================================================================================
@@ -183,7 +253,7 @@
     pp = pp + 1
  enddo
 
- errmsg = 'cu_ntiedtke_final OK'
+ errmsg = 'cu_ntiedtke_timestep_final OK'
  errflg = 0
 
  end subroutine cu_ntiedtke_timestep_final
