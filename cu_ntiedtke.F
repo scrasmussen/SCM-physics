@@ -134,20 +134,27 @@
  end subroutine cu_ntiedtke_final
 
 !=================================================================================================================
- subroutine cu_ntiedtke_timestep_init(its,ite,kts,kte,itimestep,grav,dz,pres,presi,t,rho,qv,qc,qi,u,v,w,qvften, &
-                        thften,qvftenz,thftenz,prsl,ghtl,tf,qvf,qcf,qif,uf,vf,prsi,ghti,omg,errmsg,errflg)
+ subroutine cu_ntiedtke_timestep_init(its,ite,kts,kte,im,kx,kx1,itimestep,stepcu,dt,grav,xland,dz,pres,presi, &
+                        t,rho,qv,qc,qi,u,v,w,qvften,thften,qvftenz,thftenz,slimsk,delt,prsl,ghtl,tf,qvf,qcf,  &
+                        qif,uf,vf,prsi,ghti,omg,errmsg,errflg)
 !=================================================================================================================
 
 !--- input arguments:
  integer,intent(in):: its,ite,kts,kte
  integer,intent(in):: itimestep
+ integer,intent(in):: stepcu
 
- real(kind=kind_phys),intent(in):: grav
+ real(kind=kind_phys),intent(in):: dt,grav
+ real(kind=kind_phys),intent(in),dimension(its:ite):: xland
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: dz,pres,t,rho,qv,qc,qi,u,v
  real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: qvften,thften
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+1):: presi,w
 
 !--- inout arguments:
+ integer,intent(inout):: im,kx,kx1
+ integer,intent(inout),dimension(its:ite):: slimsk
+
+ real(kind=kind_phys),intent(inout):: delt
  real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: tf,qvf,qcf,qif,uf,vf
  real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: ghtl,omg,prsl
  real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: qvftenz,thftenz
@@ -164,6 +171,16 @@
  real(kind=kind_phys),dimension(its:ite,kts:kte+1):: zi
 
 !-----------------------------------------------------------------------------------------------------------------
+
+ im  = ite-its+1
+ kx  = kte-kts+1
+ kx1 = kx+1
+
+ delt  = dt*stepcu
+
+ do i = its,ite
+    slimsk(i) = (abs(xland(i)-2.))
+ enddo
 
  k = kts
  do i = its,ite
