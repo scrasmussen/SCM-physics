@@ -134,19 +134,23 @@
  end subroutine cu_ntiedtke_final
 
 !=================================================================================================================
- subroutine cu_ntiedtke_timestep_init(its,ite,kts,kte,grav,dz,pres,presi,rho,w,prsl,prsi,ghtl,ghti,omg, &
-                                      errmsg,errflg)
+ subroutine cu_ntiedtke_timestep_init(its,ite,kts,kte,itimestep,grav,dz,pres,presi,t,rho,qv,qc,qi,u,v,w,qvften, &
+                        thften,qvftenz,thftenz,prsl,ghtl,tf,qvf,qcf,qif,uf,vf,prsi,ghti,omg,errmsg,errflg)
 !=================================================================================================================
 
 !--- input arguments:
  integer,intent(in):: its,ite,kts,kte
+ integer,intent(in):: itimestep
 
  real(kind=kind_phys),intent(in):: grav
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: dz,pres,rho
+ real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: dz,pres,t,rho,qv,qc,qi,u,v
+ real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: qvften,thften
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+1):: presi,w
 
 !--- inout arguments:
+ real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: tf,qvf,qcf,qif,uf,vf
  real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: ghtl,omg,prsl
+ real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: qvftenz,thftenz
  real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte+1):: ghti,prsi
 
 !--- output arguments:
@@ -196,6 +200,39 @@
     enddo
     pp = pp + 1
  enddo
+
+ pp = 0
+ do k = kts,kte
+    zz = kte-pp
+    do i = its,ite
+       tf(i,zz)  = t(i,k)
+       qvf(i,zz) = qv(i,k)
+       qcf(i,zz) = qc(i,k)
+       qif(i,zz) = qi(i,k)
+       uf(i,zz)  = u(i,k)
+       vf(i,zz)  = v(i,k)
+    enddo
+    pp = pp + 1
+ enddo
+
+ if(itimestep == 1) then
+    do k = kts,kte
+       do i = its,ite
+          qvftenz(i,k) = 0.
+          thftenz(i,k) = 0.
+       enddo
+    enddo
+ else
+    pp = 0
+    do k = kts,kte
+       zz = kte-pp
+       do i = its,ite
+          qvftenz(i,zz) = qvften(i,k)
+          thftenz(i,zz) = thften(i,k)
+       enddo
+       pp = pp + 1
+    enddo
+ endif
 
  errmsg = 'cu_ntiedtke_timestep_init OK'
  errflg = 0
