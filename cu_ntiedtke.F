@@ -3513,7 +3513,7 @@
       return
       end subroutine cuadjtqn
 !---------------------------------------------------------
-!  level 4 souroutines
+!  level 4 subroutines
 !--------------------------------------------------------
       subroutine cubasmcn &
      &    (klon,     klev,     klevm1,  kk,     pten,&
@@ -3541,23 +3541,30 @@
 !   ---------
 !          none
 ! ----------------------------------------------------------------
-      real     pten(klon,klev),        pqen(klon,klev),&
-     &         puen(klon,klev),        pven(klon,klev),&
-     &         pqsen(klon,klev),       pverv(klon,klev),&
-     &         pgeo(klon,klev),        pgeoh(klon,klev+1)
-      real     ptu(klon,klev),         pqu(klon,klev),&
-     &         puu(klon,klev),         pvu(klon,klev),&
-     &         plu(klon,klev),         pmfu(klon,klev),&
-     &         pmfub(klon),   &
-     &         pmfus(klon,klev),       pmfuq(klon,klev),&
-     &         pmful(klon,klev),       pdmfup(klon,klev),&
-     &         plrain(klon,klev)
-      integer  ktype(klon),            kcbot(klon),&
-     &         klab(klon,klev)
-      logical  ldcum(klon)
-! local variabels
-      integer  jl,kk,klev,klon,klevp1,klevm1
-      real     zzzmb
+
+!--- input arguments:
+      logical,intent(in),dimension(klon):: ldcum
+      integer,intent(in):: klon,kk,klev,klevm1
+
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pten,pqen,pqsen,pgeo,pverv
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: puen,pven ! not used.
+      real(kind=kind_phys),intent(in),dimension(klon,klev+1):: pgeoh
+
+!--- output arguments:
+      integer,intent(out),dimension(klon):: ktype,kcbot
+      integer,intent(out),dimension(klon,klev):: klab
+
+      real(kind=kind_phys),intent(out),dimension(klon):: pmfub
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: plrain
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: ptu,pqu,plu
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: pmfu,pmfus,pmfuq,pmful
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: puu,pvu  ! not used.
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: pdmfup
+
+!--- local variables and arrays:
+      integer:: jl,klevp1
+      real(kind=kind_phys):: zzzmb
+
 !--------------------------------------------------------
 !*    1.      calculate entrainment and detrainment rates
 ! -------------------------------------------------------
@@ -3582,6 +3589,8 @@
             klab(jl,kk+1)=1
             plrain(jl,kk+1)=0.0
             ktype(jl)=3
+            puu(jl,kk+1)=0.
+            pvu(jl,kk+1)=0.
           end if
          end if
         end do
@@ -3601,7 +3610,6 @@
        integer,intent(in):: klon,klev,kk
        integer,intent(in),dimension(klon):: kcbot
 
-       real(kind=kind_phys),intent(in),dimension(klon):: zentr
        real(kind=kind_phys),intent(in),dimension(klon,klev):: pmfu
        real(kind=kind_phys),intent(in),dimension(klon,klev+1):: pgeoh
 
