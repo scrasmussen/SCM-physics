@@ -362,33 +362,38 @@
 !     When nonequil = .true., the CAPE is relaxed toward to a value from PBL
 !     It can improve the diurnal precipitation over land.
 
-      real pu(lq,km),   pv(lq,km),   pt(lq,km),   pqv(lq,km)
-      real poz(lq,km),  pomg(lq,km), evap(lq),    zprecc(lq)
-      real pzz(lq,km1)
+!--- input arguments:
+      integer,intent(in):: lq,km,km1
+      integer,intent(in),dimension(lq):: lndj
 
-      real pum1(lq,km),    pvm1(lq,km),  ztt(lq,km),                &
-     &     ptte(lq,km),    pqte(lq,km),  pvom(lq,km),  pvol(lq,km), &
-     &     pverv(lq,km),   pgeo(lq,km),  pap(lq,km),   paph(lq,km1)
-      real pqhfl(lq),      zqq(lq,km),    &
-     &     prsfc(lq),      pssfc(lq),    pcte(lq,km), &
-     &     phhfl(lq),      hfx(lq),      pgeoh(lq,km1)
-      real ztp1(lq,km),    zqp1(lq,km),  ztu(lq,km),   zqu(lq,km),  &
-     &     zlu(lq,km),     zlude(lq,km), zmfu(lq,km),  zmfd(lq,km), &
-     &     zqsat(lq,km),   pqc(lq,km),   pqi(lq,km),   zrain(lq)
-      real pqvf(lq,km),    ptf(lq,km)
-      real dx(lq)
+      real(kind=kind_phys),intent(in):: dt
+      real(kind=kind_phys),intent(in),dimension(lq):: dx
+      real(kind=kind_phys),intent(in),dimension(lq):: evap,hfx
+      real(kind=kind_phys),intent(in),dimension(lq,km):: pqvf,ptf
+      real(kind=kind_phys),intent(in),dimension(lq,km):: poz,pomg,pap
+      real(kind=kind_phys),intent(in),dimension(lq,km1):: pzz,paph
 
-      integer icbot(lq),   ictop(lq),     ktype(lq),   lndj(lq)
-      logical locum(lq)
-!
-      real ztmst,fliq,fice,ztc,zalf,tt
-      integer i,j,k,lq,km,km1
-      real dt,ztpp1
-      real zew,zqs,zcor
+!--- inout arguments:
+      real(kind=kind_phys),intent(inout),dimension(lq):: zprecc
+      real(kind=kind_phys),intent(inout),dimension(lq,km):: pu,pv,pt,pqv,pqc,pqi
 
 !--- output arguments:
- character(len=*),intent(out):: errmsg
- integer,intent(out):: errflg
+      character(len=*),intent(out):: errmsg
+      integer,intent(out):: errflg
+
+!--- local variables and arrays:
+      logical,dimension(lq):: locum
+      integer:: i,j,k
+      integer,dimension(lq):: icbot,ictop,ktype
+
+      real(kind=kind_phys):: ztmst,fliq,fice,ztc,zalf,tt
+      real(kind=kind_phys):: ztpp1,zew,zqs,zcor
+      real(kind=kind_phys),dimension(lq):: pqhfl,prsfc,pssfc,phhfl,zrain
+
+      real(kind=kind_phys),dimension(lq,km):: pum1,pvm1,ztt,ptte,pqte,pvom,pvol,pverv,pgeo
+      real(kind=kind_phys),dimension(lq,km):: zqq,pcte
+      real(kind=kind_phys),dimension(lq,km):: ztp1,zqp1,ztu,zqu,zlu,zlude,zmfu,zmfd,zqsat
+      real(kind=kind_phys),dimension(lq,km1):: pgeoh
 
 !-----------------------------------------------------------------------------------------------------------------
 !
