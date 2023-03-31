@@ -3588,23 +3588,33 @@
       return
       end subroutine cubasmcn
 !---------------------------------------------------------
-!  level 4 souroutines
+!  level 4 subroutines
 !---------------------------------------------------------
       subroutine cuentrn(klon,klev,kk,kcbot,ldcum,ldwork, &
                     pgeoh,pmfu,pdmfen,pdmfde)
        implicit none
-       integer  klon,klev,kk
-       integer  kcbot(klon)
-       logical  ldcum(klon)
-       logical  ldwork
-       real  pgeoh(klon,klev+1)
-       real  pmfu(klon,klev)
-       real  pdmfen(klon)
-       real  pdmfde(klon) 
-       logical  llo1
-       integer  jl
-       real  zdz , zmf
-       real  zentr(klon)
+
+!--- input arguments:
+       logical,intent(in):: ldwork
+       logical,intent(in),dimension(klon):: ldcum
+
+       integer,intent(in):: klon,klev,kk
+       integer,intent(in),dimension(klon):: kcbot
+
+       real(kind=kind_phys),intent(in),dimension(klon):: zentr
+       real(kind=kind_phys),intent(in),dimension(klon,klev):: pmfu
+       real(kind=kind_phys),intent(in),dimension(klon,klev+1):: pgeoh
+
+!--- output arguments:
+       real(kind=kind_phys),intent(out),dimension(klon):: pdmfen
+       real(kind=kind_phys),intent(out),dimension(klon):: pdmfde
+
+!--- local variables and arrays:
+       logical:: llo1
+       integer:: jl
+       real(kind=kind_phys):: zdz ,zmf
+       real(kind=kind_phys),dimension(klon):: zentr
+
     !
     !* 1. CALCULATE ENTRAINMENT AND DETRAINMENT RATES
     ! -------------------------------------------
@@ -3633,7 +3643,7 @@
 !--------------------------------------------------------
 ! external functions
 !------------------------------------------------------
-      real function foealfa(tt)
+      real(kind=kind_phys) function foealfa(tt)
 !     foealfa is calculated to distinguish the three cases:
 !
 !                       foealfa=1            water phase
@@ -3643,40 +3653,40 @@
 !               input : tt = temperature
 !
         implicit none
-        real tt
+        real(kind=kind_phys),intent(in):: tt
          foealfa = min(1.,((max(rtice,min(rtwat,tt))-rtice) &
      &  /(rtwat-rtice))**2)
 
         return
       end function foealfa
 
-      real function foelhm(tt)
+      real(kind=kind_phys) function foelhm(tt)
         implicit none
-        real tt
+        real(kind=kind_phys),intent(in):: tt
         foelhm = foealfa(tt)*alv + (1.-foealfa(tt))*als
       return
       end function foelhm
 
-      real function foeewm(tt)
+      real(kind=kind_phys) function foeewm(tt)
         implicit none
-        real tt
+        real(kind=kind_phys),intent(in):: tt
         foeewm  = c2es * &
      &     (foealfa(tt)*exp(c3les*(tt-tmelt)/(tt-c4les))+ &
      &     (1.-foealfa(tt))*exp(c3ies*(tt-tmelt)/(tt-c4ies)))
       return
       end function foeewm
 
-      real function foedem(tt)
+      real(kind=kind_phys) function foedem(tt)
         implicit none
-        real tt
+        real(kind=kind_phys),intent(in):: tt
         foedem  = foealfa(tt)*r5alvcp*(1./(tt-c4les)**2)+ &
      &              (1.-foealfa(tt))*r5alscp*(1./(tt-c4ies)**2)
       return
       end function foedem
 
-      real function foeldcpm(tt)
+      real(kind=kind_phys) function foeldcpm(tt)
         implicit none
-        real tt
+        real(kind=kind_phys),intent(in):: tt
         foeldcpm = foealfa(tt)*ralvdcp+ &
      &        (1.-foealfa(tt))*ralsdcp
       return
