@@ -1249,13 +1249,13 @@
 !**********************************************
 !
       subroutine cuinin &
-     &    (klon,     klev,     klevp1,   klevm1,   pten,&
-     &     pqen,     pqsen,    puen,     pven,     pverv,&
-     &     pgeo,     paph,     pgeoh,    ptenh,    pqenh,&
-     &     pqsenh,   klwmin,   ptu,      pqu,      ptd,&
-     &     pqd,      puu,      pvu,      pud,      pvd,&
-     &     pmfu,     pmfd,     pmfus,    pmfds,    pmfuq,&
-     &     pmfdq,    pdmfup,   pdmfdp,   pdpmel,   plu,&
+     &    (klon,     klev,     klevp1,   klevm1,   pten,  &
+     &     pqen,     pqsen,    puen,     pven,     pverv, &
+     &     pgeo,     paph,     pgeoh,    ptenh,    pqenh, &
+     &     pqsenh,   klwmin,   ptu,      pqu,      ptd,   &
+     &     pqd,      puu,      pvu,      pud,      pvd,   &
+     &     pmfu,     pmfd,     pmfus,    pmfds,    pmfuq, &
+     &     pmfdq,    pdmfup,   pdmfdp,   pdpmel,   plu,   &
      &     plude,    klab)
       implicit none
 !      m.tiedtke         e.c.m.w.f.     12/89
@@ -1274,30 +1274,33 @@
 !   ---------
 !          *cuadjtq* to specify qs at half levels
 ! ----------------------------------------------------------------
-      integer  klon,klev,klevp1,klevm1
-      real     pten(klon,klev),        pqen(klon,klev),&
-     &         puen(klon,klev),        pven(klon,klev),&
-     &         pqsen(klon,klev),       pverv(klon,klev),&
-     &         pgeo(klon,klev),        pgeoh(klon,klevp1),&
-     &         paph(klon,klevp1),      ptenh(klon,klev),&
-     &         pqenh(klon,klev),       pqsenh(klon,klev)
-      real     ptu(klon,klev),         pqu(klon,klev),&
-     &         ptd(klon,klev),         pqd(klon,klev),&
-     &         puu(klon,klev),         pud(klon,klev),&
-     &         pvu(klon,klev),         pvd(klon,klev),&
-     &         pmfu(klon,klev),        pmfd(klon,klev),&
-     &         pmfus(klon,klev),       pmfds(klon,klev),&
-     &         pmfuq(klon,klev),       pmfdq(klon,klev),&
-     &         pdmfup(klon,klev),      pdmfdp(klon,klev),&
-     &         plu(klon,klev),         plude(klon,klev)
-      real     zwmax(klon),            zph(klon), &
-     &         pdpmel(klon,klev)
-      integer  klab(klon,klev),        klwmin(klon)
-      logical  loflag(klon)
-!  local variables
-      integer  jl,jk
-      integer  icall,ik
-      real     zzs
+
+!--- input arguments:
+      integer,intent(in):: klon,klev,klevp1,klevm1
+
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pten,pqen,pqsen,puen,pven
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pgeo,pverv
+      real(kind=kind_phys),intent(in),dimension(klon,klev+1):: paph,pgeoh
+
+!--- output arguments:
+      integer,intent(out),dimension(klon):: klwmin
+      integer,intent(out),dimension(klon,klev):: klab
+
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: ptenh,pqenh,pqsenh
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: ptu,ptd,pqu,pqd,plu
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: puu,pud,pvu,pvd
+
+!--- inout arguments:
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pmfu,pmfd,pmfus,pmfds,pmfuq,pmfdq
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pdmfup,pdmfdp,plude,pdpmel
+
+!--- local variables and arrays:
+      logical,dimension(klon):: loflag
+      integer::  jl,jk
+      integer::  icall,ik
+      real(kind=kind_phys):: zzs
+      real(kind=kind_phys),dimension(klon):: zph,zwmax
+
 !------------------------------------------------------------
 !*    1.       specify large scale parameters at half levels
 !*             adjust temperature fields if staticly unstable
@@ -2637,12 +2640,12 @@
 !**********************************************
 !       subroutine cuddrafn
 !**********************************************
-       subroutine cuddrafn                                 &
+       subroutine cuddrafn                                &
      &   ( klon,     klev,    lddraf                      &
      &   , ptenh,    pqenh,    puen,     pven             &
      &   , pgeo,     pgeoh,    paph,     prfl             &
      &   , ptd,      pqd,      pud,      pvd,      pmfu   &
-     &   , pmfd,     pmfds,    pmfdq,    pdmfdp,   pmfdde_rate     )
+     &   , pmfd,     pmfds,    pmfdq,    pdmfdp,   pmfdde_rate )
 
 !          this routine calculates cumulus downdraft descent
 
@@ -2710,31 +2713,34 @@
 !----------------------------------------------------------------------
       implicit none
 
-      integer  klev,klon
-      real     ptenh(klon,klev),       pqenh(klon,klev),   &
-     &         puen(klon,klev),        pven(klon,klev),    &
-     &         pgeoh(klon,klev+1),     paph(klon,klev+1),  &
-     &         pgeo(klon,klev),        pmfu(klon,klev)
+!--- input arguments:
+      logical,intent(in),dimension(klon):: lddraf
 
-      real     ptd(klon,klev),         pqd(klon,klev),     &
-     &         pud(klon,klev),         pvd(klon,klev),     &
-     &         pmfd(klon,klev),        pmfds(klon,klev),   &
-     &         pmfdq(klon,klev),       pdmfdp(klon,klev),  &
-     &         prfl(klon)
-      real     pmfdde_rate(klon,klev)
-      logical  lddraf(klon)
+      integer,intent(in)::klev,klon
 
-      real     zdmfen(klon),           zdmfde(klon),       &
-     &         zcond(klon),            zoentr(klon),       &
-     &         zbuoy(klon)
-      real     zph(klon)
-      logical  llo2(klon)
-      logical  llo1
-! local variables
-      integer  jl,jk
-      integer  is,ik,icall,ike, itopde(klon)
-      real     zentr,zdz,zzentr,zseen,zqeen,zsdde,zqdde,zdmfdp
-      real     zmfdsk,zmfdqk,zbuo,zrain,zbuoyz,zmfduk,zmfdvk
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: ptenh,pqenh,puen,pven
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pgeo,pmfu
+      real(kind=kind_phys),intent(in),dimension(klon,klev+1):: pgeoh,paph
+
+!--- inout arguments:
+      real(kind=kind_phys),intent(inout),dimension(klon):: prfl
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: ptd,pqd,pud,pvd
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pmfd,pmfds,pmfdq,pdmfdp
+
+!--- output arguments:
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pmfdde_rate
+
+!--- local variables and arrays:
+      logical:: llo1
+      logical,dimension(klon):: llo2
+
+      integer::  jl,jk
+      integer::  is,ik,icall,ike
+      integer,dimension(klon):: itopde
+
+      real(kind=kind_phys):: zentr,zdz,zzentr,zseen,zqeen,zsdde,zqdde,zdmfdp
+      real(kind=kind_phys):: zmfdsk,zmfdqk,zbuo,zrain,zbuoyz,zmfduk,zmfdvk
+      real(kind=kind_phys),dimension(klon):: zdmfen,zdmfde,zcond,zoentr,zbuoy,zph
 
 !----------------------------------------------------------------------
 !     1.           calculate moist descent for cumulus downdraft by
@@ -2948,37 +2954,49 @@
 !          ---------                                                           
 !          none                                                                
 !----------------------------------------------------------------------        
-      implicit none                                                     
+      implicit none
 
-      integer  klev,klon,ktopm2                                                                         
-      real     pten(klon,klev),        ptenh(klon,klev),          &             
-     &         pqen(klon,klev),        pqsen(klon,klev),          &             
-     &         pqenh(klon,klev),       pap(klon,klev),            &             
-     &         paph(klon,klev+1),      pgeoh(klon,klev+1),        &             
-     &         plglac(klon,klev)                                               
-                                                                               
-      real     pmfu(klon,klev),        pmfd(klon,klev),           &             
-     &         pmfus(klon,klev),       pmfds(klon,klev),          &             
-     &         pmfuq(klon,klev),       pmfdq(klon,klev),          &             
-     &         pdmfup(klon,klev),      pdmfdp(klon,klev),         &             
-     &         pdpmel(klon,klev),      prain(klon),               &             
-     &         pmful(klon,klev),       plude(klon,klev),          &             
-     &         pmflxr(klon,klev+1),    pmflxs(klon,klev+1)  
-      real     pmfdde_rate(klon,klev)               
-      integer  kcbot(klon),            kctop(klon),               &             
-     &         kdtop(klon),            ktype(klon)                             
-      logical  lddraf(klon),                                &
-     &         ldcum(klon)  
-      integer  lndj(klon)
-! local variables
-      integer  jl,jk
-      integer  is,ik,icall,ike,ikb
-      real     ztmst,ztaumel,zcons1a,zcons1,zcons2,zcucov,zcpecons
-      real     zalfaw,zrfl,zdrfl1,zrnew,zrmin,zrfln,zdrfl,zdenom
-      real     zpdr,zpds,zzp,zfac,zsnmlt
-      real     rhevap(klon)
-      integer  idbas(klon)
-      logical  llddraf
+!--- input arguments:
+      logical,intent(in),dimension(klon):: ldcum
+
+      integer,intent(in):: klev,klon
+      integer,intent(in),dimension(klon):: lndj
+      integer,intent(in),dimension(klon):: kcbot,kctop,kdtop
+
+      real(kind=kind_phys),intent(in):: ztmst
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pten,ptenh,pqen,pqenh
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pap
+      real(kind=kind_phys),intent(in),dimension(klon,klev+1):: paph,pgeoh
+
+!--- inout arguments:
+      logical,intent(inout),dimension(klon):: lddraf
+
+      integer,intent(inout):: ktopm2
+      integer,intent(inout),dimension(klon):: ktype
+
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pmfu,pmfd,pmfus,pmfds
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pmfuq,pmfdq,pmful,plude
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pdmfup,pdmfdp
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pqsen
+
+!--- output arguments:
+      real(kind=kind_phys),dimension(klon):: prain
+      real(kind=kind_phys),dimension(klon,klev):: pdpmel,plglac
+      real(kind=kind_phys),dimension(klon,klev):: pmfdde_rate
+      real(kind=kind_phys),dimension(klon,klev+1):: pmflxr,pmflxs
+
+!--- local variables and arrays:
+      logical:: llddraf
+
+      integer:: jl,jk
+      integer:: is,ik,icall,ike,ikb
+      integer,dimension(klon):: idbas
+
+      real(kind=kind_phys):: ztaumel,zcons1a,zcons1,zcons2,zcucov,zcpecons
+      real(kind=kind_phys):: zalfaw,zrfl,zdrfl1,zrnew,zrmin,zrfln,zdrfl,zdenom
+      real(kind=kind_phys):: zpdr,zpds,zzp,zfac,zsnmlt
+      real(kind=kind_phys),dimension(klon):: rhevap
+
 !--------------------------------------------------------------------          
 !*             specify constants  
 
@@ -3187,34 +3205,38 @@
       return
       end subroutine cuflxn 
 !---------------------------------------------------------
-!  level 3 souroutines  
+!  level 3 subroutines  
 !--------------------------------------------------------
-     subroutine cudtdqn(klon,klev,ktopm2,kctop,kdtop,ldcum, &
-                     lddraf,ztmst,paph,pgeoh,pgeo,pten,ptenh,pqen,  &
+     subroutine cudtdqn(klon,klev,ktopm2,kctop,kdtop,ldcum,          &
+                     lddraf,ztmst,paph,pgeoh,pgeo,pten,ptenh,pqen,   &
                      pqenh,pqsen,plglac,plude,pmfu,pmfd,pmfus,pmfds, &
                      pmfuq,pmfdq,pmful,pdmfup,pdmfdp,pdpmel,ptent,ptenq,pcte)
     implicit none
-    integer  klon,klev,ktopm2
-    integer  kctop(klon),  kdtop(klon)
-    logical  ldcum(klon),  lddraf(klon)
-    real     ztmst
-    real     paph(klon,klev+1), pgeoh(klon,klev+1)
-    real     pgeo(klon,klev),   pten(klon,klev), &
-             pqen(klon,klev),   ptenh(klon,klev),&
-             pqenh(klon,klev),  pqsen(klon,klev),&
-             plglac(klon,klev), plude(klon,klev)
-    real     pmfu(klon,klev),   pmfd(klon,klev),&
-             pmfus(klon,klev),  pmfds(klon,klev),&
-             pmfuq(klon,klev),  pmfdq(klon,klev),&
-             pmful(klon,klev),  pdmfup(klon,klev),&
-             pdpmel(klon,klev), pdmfdp(klon,klev)
-    real     ptent(klon,klev),  ptenq(klon,klev)
-    real     pcte(klon,klev)
 
-! local variables
-    integer  jk , ik , jl
-    real     zalv , zzp
-    real     zdtdt(klon,klev) , zdqdt(klon,klev) , zdp(klon,klev)
+!--- input arguments:
+    logical,intent(in),dimension(klon):: ldcum,lddraf
+
+    integer,intent(in):: klon,klev,ktopm2
+    integer,intent(in),dimension(klon):: kctop,kdtop
+
+    real(kind=kind_phys),intent(in):: ztmst
+    real(kind=kind_phys),intent(in),dimension(klon,klev):: pgeo
+    real(kind=kind_phys),intent(in),dimension(klon,klev):: pten
+    real(kind=kind_phys),intent(in),dimension(klon,klev):: pmfu,pmfus,pmfd,pmfds
+    real(kind=kind_phys),intent(in),dimension(klon,klev):: pmfuq,pmfdq,pmful
+    real(kind=kind_phys),intent(in),dimension(klon,klev):: plglac,plude,pdpmel
+    real(kind=kind_phys),intent(in),dimension(klon,klev):: pdmfup,pdmfdp
+    real(kind=kind_phys),intent(in),dimension(klon,klev):: pqen, ptenh,pqenh,pqsen
+    real(kind=kind_phys),intent(in),dimension(klon,klev+1):: paph,pgeoh
+
+!--- inout arguments:
+    real(kind=kind_phys),intent(inout),dimension(klon,klev):: ptent,ptenq,pcte
+
+!--- local variables and arrays:
+    integer::  jk ,ik ,jl
+    real(kind=kind_phys):: zalv ,zzp
+    real(kind=kind_phys),dimension(klon,klev):: zdtdt,zdqdt,zdp
+
     !*    1.0          SETUP AND INITIALIZATIONS
     ! -------------------------
     do jk = 1 , klev
@@ -3270,31 +3292,33 @@
     return
   end subroutine cudtdqn
 !---------------------------------------------------------
-!  level 3 souroutines  
+!  level 3 subroutines  
 !--------------------------------------------------------
     subroutine cududvn(klon,klev,ktopm2,ktype,kcbot,kctop,ldcum,  &
                     ztmst,paph,puen,pven,pmfu,pmfd,puu,pud,pvu,pvd,ptenu, &
                     ptenv)
     implicit none
-    integer  klon,klev,ktopm2
-    integer  ktype(klon), kcbot(klon), kctop(klon)
-    logical  ldcum(klon)
-    real     ztmst
-    real     paph(klon,klev+1)
-    real     puen(klon,klev),  pven(klon,klev),&
-             pmfu(klon,klev),  pmfd(klon,klev),&
-             puu(klon,klev),   pud(klon,klev),&
-             pvu(klon,klev),   pvd(klon,klev)
-    real     ptenu(klon,klev), ptenv(klon,klev)
 
-!local variables
-    real     zuen(klon,klev) , zven(klon,klev) , zmfuu(klon,klev), &
-             zmfdu(klon,klev), zmfuv(klon,klev), zmfdv(klon,klev)
+!--- input arguments:
+    logical,intent(in),dimension(klon):: ldcum
+    integer,intent(in):: klon,klev,ktopm2
+    integer,intent(in),dimension(klon):: ktype,kcbot,kctop
 
-    integer  ik , ikb , jk , jl
-    real     zzp, zdtdt
-   
-    real     zdudt(klon,klev), zdvdt(klon,klev), zdp(klon,klev)
+    real(kind=kind_phys),intent(in):: ztmst
+    real(kind=kind_phys),intent(in),dimension(klon,klev):: pmfu,pmfd,puen,pven
+    real(kind=kind_phys),intent(in),dimension(klon,klev):: puu,pud,pvu,pvd
+    real(kind=kind_phys),intent(in),dimension(klon,klev+1):: paph
+
+!--- inout arguments:
+    real(kind=kind_phys),intent(inout),dimension(klon,klev):: ptenu,ptenv
+
+!--- local variables and arrays:
+    integer:: ik,ikb,jk,jl
+
+    real(kind=kind_phys):: zzp,zdtdt
+    real(kind=kind_Phys),dimension(klon,klev):: zdudt,zdvdt,zdp
+    real(kind=kind_phys),dimension(klon,klev):: zuen,zven,zmfuu,zmfdu,zmfuv,zmfdv
+
 !
     do jk = 1 , klev
       do jl = 1, klon
@@ -3371,7 +3395,7 @@
     return
     end subroutine cududvn
 !---------------------------------------------------------
-!  level 3 souroutines
+!  level 3 subroutines
 !--------------------------------------------------------
       subroutine cuadjtqn                 &
      &    (klon, klev, kk, psp, pt, pq, ldflag,  kcall)
@@ -3418,14 +3442,21 @@
                                                                                     
       implicit none   
                  
-      integer  klev,klon                                                                   
-      real     pt(klon,klev),          pq(klon,klev),  &                             
-     &         psp(klon)                                                            
-      logical  ldflag(klon)                                                         
-! local variables
-      integer  jl,jk
-      integer  isum,kcall,kk
-      real     zqmax,zqsat,zcor,zqp,zcond,zcond1,zl,zi,zf
+!--- input arguments:
+      logical,intent(in),dimension(klon):: ldflag
+      integer,intent(in):: kcall,kk,klev,klon
+
+      real(kind=kind_phys),intent(in),dimension(klon):: psp
+
+!--- inout arguments:
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pt,pq
+
+!--- local variables and arrays:
+      integer:: jl,jk
+      integer:: isum
+
+      real(kind=kind_phys)::zqmax,zqsat,zcor,zqp,zcond,zcond1,zl,zi,zf
+
 !----------------------------------------------------------------------
 !     1.           define constants
 !                  ----------------
