@@ -1376,13 +1376,13 @@
       end subroutine cuinin
 
 !---------------------------------------------------------
-!  level 3 souroutines
+!  level 3 subroutines
 !--------------------------------------------------------
       subroutine cutypen &
-     &   (  klon,    klev,     klevp1,   klevm1,     pqen,&
-     &     ptenh,   pqenh,     pqsenh,    pgeoh,     paph,&
-     &       hfx,     qfx,       pgeo,    pqsen,      pap,&
-     &      pten,    lndj,       cutu,     cuqu,    culab,&
+     &   (  klon,    klev,     klevp1,   klevm1,     pqen, &
+     &     ptenh,   pqenh,     pqsenh,    pgeoh,     paph, &
+     &       hfx,     qfx,       pgeo,    pqsen,      pap, &
+     &      pten,    lndj,       cutu,     cuqu,    culab, &
      &     ldcum,   cubot,      cutop,    ktype,    wbase,    culu,   kdpl  )
 !      zhang & wang      iprc           2011-2013
 !***purpose.
@@ -1427,51 +1427,52 @@
 !-------------------------------------------------------------------
       implicit none
 !-------------------------------------------------------------------
-      integer  klon, klev, klevp1, klevm1
-      real     ptenh(klon,klev),       pqenh(klon,klev),&
-     &         pqsen(klon,klev),       pqsenh(klon,klev),&
-     &         pgeoh(klon,klevp1),     paph(klon,klevp1),&
-     &         pap(klon,klev),         pqen(klon,klev)
-      real     pten(klon,klev)
-      real     ptu(klon,klev),pqu(klon,klev),plu(klon,klev)
-      real     pgeo(klon,klev)
-      integer  klab(klon,klev)
-      integer  kctop(klon),kcbot(klon)
 
-      real     qfx(klon),hfx(klon)
-      real     zph(klon)
-      integer  lndj(klon)
-      logical  loflag(klon), deepflag(klon), resetflag(klon)
+!--- input arguments:
+      integer,intent(in):: klon,klev,klevp1,klevm1
+      integer,intent(in),dimension(klon):: lndj
 
-! output variables
-      real     cutu(klon,klev), cuqu(klon,klev), culu(klon,klev)
-      integer  culab(klon,klev)
-      real     wbase(klon)
-      integer  ktype(klon),cubot(klon),cutop(klon),kdpl(klon)
-      logical  ldcum(klon)
+      real(kind=kind_phys),intent(in),dimension(klon):: qfx,hfx
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pap,pgeo
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pten,pqen,pqsen
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: ptenh,pqenh,pqsenh
+      real(kind=kind_phys),intent(in),dimension(klon,klevp1):: paph,pgeoh
 
-! local variables
-      real     zqold(klon)
-      real     rho, part1, part2, root, conw, deltt, deltq
-      real     eta(klon),dz(klon),coef(klon)
-      real     dhen(klon,klev), dh(klon,klev)
-      real     plude(klon,klev)
-      real     kup(klon,klev)
-      real     vptu(klon,klev),vten(klon,klev)
-      real     zbuo(klon,klev),abuoy(klon,klev)
+!--- output arguments:
+      logical,intent(out),dimension(klon):: ldcum
 
-      real     zz,zdken,zdq
-      real     fscale,crirh1,pp
-      real     atop1,atop2,abot
-      real     tmix,zmix,qmix,pmix
-      real     zlglac,dp
-      integer  nk,is,ikb,ikt
+      integer,intent(out),dimension(klon):: ktype
+      integer,intent(out),dimension(klon):: cubot,cutop,kdpl
+      integer,intent(out),dimension(klon,klev):: culab
 
-      real     zqsu,zcor,zdp,zesdp,zalfaw,zfacw,zfaci,zfac,zdsdp,zdqsdt,zdtdp
-      real     zpdifftop, zpdiffbot
-      integer  zcbase(klon), itoppacel(klon)
-      integer  jl,jk,ik,icall,levels
-      logical  needreset, lldcum(klon)
+      real(kind=kind_phys),intent(out),dimension(klon):: wbase
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: cutu,cuqu,culu
+
+!--- local variables and arrays:
+      logical:: needreset
+      logical,dimension(klon):: lldcum
+      logical,dimension(klon):: loflag,deepflag,resetflag
+
+      integer:: jl,jk,ik,icall,levels
+      integer:: nk,is,ikb,ikt
+      integer,dimension(klon):: kctop,kcbot
+      integer,dimension(klon):: zcbase,itoppacel
+      integer,dimension(klon,klev):: klab
+
+      real(kind=kind_phys):: rho,part1,part2,root,conw,deltt,deltq
+      real(kind=kind_phys):: zz,zdken,zdq
+      real(kind=kind_phys):: fscale,crirh1,pp
+      real(kind=kind_phys):: atop1,atop2,abot
+      real(kind=kind_phys):: tmix,zmix,qmix,pmix
+      real(kind=kind_phys):: zlglac,dp
+      real(kind=kind_phys):: zqsu,zcor,zdp,zesdp,zalfaw,zfacw,zfaci,zfac,zdsdp,zdqsdt,zdtdp
+      real(kind=kind_phys):: zpdifftop, zpdiffbot
+
+      real(kind=kind_phys),dimension(klon):: eta,dz,coef,zqold,zph
+      real(kind=kind_phys),dimension(klon,klev):: dh,dhen,kup,vptu,vten
+      real(kind=kind_phys),dimension(klon,klev):: ptu,pqu,plu
+      real(kind=kind_phys),dimension(klon,klev):: zbuo,abuoy,plude
+
 !--------------------------------------------------------------
       do jl=1,klon
         kcbot(jl)=klev
@@ -1911,15 +1912,16 @@
 !    level 3 subroutines 'cuascn'
 !-----------------------------------------------------------------
       subroutine cuascn &
-     &    (klon,     klev,     klevp1,   klevm1,   ptenh,&
-     &     pqenh,    puen,     pven,     pten,     pqen,&
-     &     pqsen,    pgeo,     pgeoh,    pap,      paph,&
-     &     pqte,     pverv,    klwmin,   ldcum,    phcbase,&
-     &     ktype,    klab,     ptu,      pqu,      plu,&
-     &     puu,      pvu,      pmfu,     pmfub,    &
-     &     pmfus,    pmfuq,    pmful,    plude,    pdmfup,&
-     &     kcbot,    kctop,    kctop0,   kcum,     ztmst,&
+     &    (klon,     klev,     klevp1,   klevm1,   ptenh,   &
+     &     pqenh,    puen,     pven,     pten,     pqen,    &
+     &     pqsen,    pgeo,     pgeoh,    pap,      paph,    &
+     &     pqte,     pverv,    klwmin,   ldcum,    phcbase, &
+     &     ktype,    klab,     ptu,      pqu,      plu,     &
+     &     puu,      pvu,      pmfu,     pmfub,             &
+     &     pmfus,    pmfuq,    pmful,    plude,    pdmfup,  &
+     &     kcbot,    kctop,    kctop0,   kcum,     ztmst,   &
      &     pqsenh,   plglac,   lndj,     wup,      wbase,   kdpl, pmfude_rate)
+
       implicit none
 !     this routine does the calculations for cloud ascents
 !     for cumulus parameterization
@@ -1991,55 +1993,58 @@
 !       kctop0 [ictop0] - estimate of cloud top. (cumastr)
 !       kcum [icum] - flag to control the call
 
-      integer  klev,klon,klevp1,klevm1
-      real     ptenh(klon,klev),       pqenh(klon,klev), &
-     &         puen(klon,klev),        pven(klon,klev),&
-     &         pten(klon,klev),        pqen(klon,klev),&
-     &         pgeo(klon,klev),        pgeoh(klon,klevp1),&
-     &         pap(klon,klev),         paph(klon,klevp1),&
-     &         pqsen(klon,klev),       pqte(klon,klev),&
-     &         pverv(klon,klev),       pqsenh(klon,klev)
-      real     ptu(klon,klev),         pqu(klon,klev),&
-     &         puu(klon,klev),         pvu(klon,klev),&
-     &         pmfu(klon,klev),        zph(klon),&
-     &         pmfub(klon),            &
-     &         pmfus(klon,klev),       pmfuq(klon,klev),&
-     &         plu(klon,klev),         plude(klon,klev),&
-     &         pmful(klon,klev),       pdmfup(klon,klev)
-      real     zdmfen(klon),           zdmfde(klon),&
-     &         zmfuu(klon),            zmfuv(klon),&
-     &         zpbase(klon),           zqold(klon)
-      real     phcbase(klon),          zluold(klon)
-      real     zprecip(klon),          zlrain(klon,klev)
-      real     zbuo(klon,klev),        kup(klon,klev)
-      real     wup(klon)
-      real     wbase(klon),            zodetr(klon,klev)
-      real     plglac(klon,klev)
+!--- input arguments:
+      integer,intent(in):: klev,klon,klevp1,klevm1
+      integer,intent(in),dimension(klon):: lndj
+      integer,intent(in),dimension(klon):: klwmin
+      integer,intent(in),dimension(klon):: kdpl
 
-      real     eta(klon),dz(klon)
+      real(kind=kind_phys),intent(in):: ztmst
+      real(kind=kind_phys),intent(in),dimension(klon):: wbase
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pten,pqen,pqsen,puen,pven,pqte,pverv
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pap,pgeo
+      real(kind=kind_phys),intent(in),dimension(klon,klevp1):: paph,pgeoh
 
-      integer  klwmin(klon),           ktype(klon),&
-     &         klab(klon,klev),        kcbot(klon),&
-     &         kctop(klon),            kctop0(klon)
-      integer  lndj(klon)
-      logical  ldcum(klon),            loflag(klon)
-      logical  llo2,llo3,              llo1(klon)
+!--- inout arguments:
+      logical,intent(inout),dimension(klon):: ldcum
 
-      integer  kdpl(klon)
-      real     zoentr(klon),           zdpmean(klon)
-      real     pdmfen(klon,klev),      pmfude_rate(klon,klev)
-! local variables
-      integer  jl,jk
-      integer  ikb,icum,itopm2,ik,icall,is,kcum,jlm,jll
-      integer  jlx(klon)
-      real     ztmst,zcons2,zfacbuo,zprcdgw,z_cwdrag,z_cldmax,z_cwifrac,z_cprc2
-      real     zmftest,zmfmax,zqeen,zseen,zscde,zqude
-      real     zmfusk,zmfuqk,zmfulk
-      real     zbc,zbe,zkedke,zmfun,zwu,zprcon,zdt,zcbf,zzco
-      real     zlcrit,zdfi,zc,zd,zint,zlnew,zvw,zvi,zalfaw,zrold
-      real     zrnew,zz,zdmfeu,zdmfdu,dp
-      real     zfac,zbuoc,zdkbuo,zdken,zvv,zarg,zchange,zxe,zxs,zdshrd
-      real     atop1,atop2,abot
+      integer,intent(inout):: kcum
+      integer,intent(inout),dimension(klon):: kcbot,kctop,kctop0
+      integer,intent(inout),dimension(klon,klev):: klab
+
+      real(kind=kind_phys),intent(inout),dimension(klon):: phcbase
+      real(kind=kind_phys),intent(inout),dimension(klon):: pmfub
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: ptenh,pqenh,pqsenh
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: ptu,pqu,plu,puu,pvu
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pmfu,pmfus,pmfuq,pmful,plude,pdmfup
+
+!--- output arguments:
+      integer,intent(out),dimension(klon):: ktype
+
+      real(kind=kind_phys),intent(out),dimension(klon):: wup
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: plglac,pmfude_rate
+
+!--- local variables and arrays:
+      logical:: llo2,llo3
+      logical,dimension(klon):: loflag,llo1
+
+      integer:: jl,jk
+      integer::ikb,icum,itopm2,ik,icall,is,jlm,jll
+      integer,dimension(klon):: jlx
+
+      real(kind=kind_phys):: zcons2,zfacbuo,zprcdgw,z_cwdrag,z_cldmax,z_cwifrac,z_cprc2
+      real(kind=kind_phys):: zmftest,zmfmax,zqeen,zseen,zscde,zqude
+      real(kind=kind_phys):: zmfusk,zmfuqk,zmfulk
+      real(kind=kind_phys):: zbc,zbe,zkedke,zmfun,zwu,zprcon,zdt,zcbf,zzco
+      real(kind=kind_phys):: zlcrit,zdfi,zc,zd,zint,zlnew,zvw,zvi,zalfaw,zrold
+      real(kind=kind_phys):: zrnew,zz,zdmfeu,zdmfdu,dp
+      real(kind=kind_phys):: zfac,zbuoc,zdkbuo,zdken,zvv,zarg,zchange,zxe,zxs,zdshrd
+      real(kind=kind_phys):: atop1,atop2,abot
+
+      real(kind=kind_phys),dimension(klon):: eta,dz,zoentr,zdpmean
+      real(kind=kind_phys),dimension(klon):: zph,zdmfen,zdmfde,zmfuu,zmfuv,zpbase,zqold,zluold,zprecip
+      real(kind=kind_phys),dimension(klon,klev):: zlrain,zbuo,kup,zodetr,pdmfen
+
 !--------------------------------
 !*    1.       specify parameters
 !--------------------------------
@@ -2413,14 +2418,14 @@
 !  level 3 souroutines
 !--------------------------------------------------------
       subroutine cudlfsn   &
-     &    (klon,     klev,  &
-     &     kcbot,    kctop,    lndj,   ldcum,   &
-     &     ptenh,    pqenh,    puen,     pven,     &
-     &     pten,     pqsen,    pgeo,                &
-     &     pgeoh,    paph,     ptu,      pqu,      plu,&
+     &    (klon,     klev,                              &
+     &     kcbot,    kctop,    lndj,   ldcum,           &
+     &     ptenh,    pqenh,    puen,     pven,          &
+     &     pten,     pqsen,    pgeo,                    &
+     &     pgeoh,    paph,     ptu,      pqu,      plu, &
      &     puu,      pvu,      pmfub,    prfl,          &
-     &     ptd,      pqd,      pud,      pvd,            &
-     &     pmfd,     pmfds,    pmfdq,    pdmfdp,          &
+     &     ptd,      pqd,      pud,      pvd,           &
+     &     pmfd,     pmfds,    pmfdq,    pdmfdp,        &
      &     kdtop,    lddraf)
 
 !          this routine calculates level of free sinking for
@@ -2640,11 +2645,11 @@
 !**********************************************
 !       subroutine cuddrafn
 !**********************************************
-       subroutine cuddrafn                                &
-     &   ( klon,     klev,    lddraf                      &
-     &   , ptenh,    pqenh,    puen,     pven             &
-     &   , pgeo,     pgeoh,    paph,     prfl             &
-     &   , ptd,      pqd,      pud,      pvd,      pmfu   &
+       subroutine cuddrafn                               &
+     &   ( klon,     klev,    lddraf                     &
+     &   , ptenh,    pqenh,    puen,     pven            &
+     &   , pgeo,     pgeoh,    paph,     prfl            &
+     &   , ptd,      pqd,      pud,      pvd,      pmfu  &
      &   , pmfd,     pmfds,    pmfdq,    pdmfdp,   pmfdde_rate )
 
 !          this routine calculates cumulus downdraft descent
@@ -2869,15 +2874,15 @@
 !---------------------------------------------------------
 !  level 3 souroutines  
 !--------------------------------------------------------
-       subroutine cuflxn         &                                                 
+       subroutine cuflxn &
      &  (  klon,     klev,     ztmst &                                                             
-     &  ,  pten,     pqen,     pqsen,    ptenh,    pqenh   &                    
-     &  ,  paph,     pap,      pgeoh,    lndj,   ldcum   &                    
-     &  ,  kcbot,    kctop,    kdtop,    ktopm2            &                    
-     &  ,  ktype,    lddraf                                &                    
-     &  ,  pmfu,     pmfd,     pmfus,    pmfds             &                    
-     &  ,  pmfuq,    pmfdq,    pmful,    plude             &                    
-     &  ,  pdmfup,   pdmfdp,   pdpmel,   plglac            &                    
+     &  ,  pten,     pqen,     pqsen,    ptenh,    pqenh &
+     &  ,  paph,     pap,      pgeoh,    lndj,   ldcum   &
+     &  ,  kcbot,    kctop,    kdtop,    ktopm2          &
+     &  ,  ktype,    lddraf                              &
+     &  ,  pmfu,     pmfd,     pmfus,    pmfds           &
+     &  ,  pmfuq,    pmfdq,    pmful,    plude           &
+     &  ,  pdmfup,   pdmfdp,   pdpmel,   plglac          &
      &  ,  prain,    pmfdde_rate, pmflxr, pmflxs )                                         
                                                                                
 !          m.tiedtke         e.c.m.w.f.     7/86 modif. 12/89                  
@@ -3397,7 +3402,7 @@
 !---------------------------------------------------------
 !  level 3 subroutines
 !--------------------------------------------------------
-      subroutine cuadjtqn                 &
+      subroutine cuadjtqn &
      &    (klon, klev, kk, psp, pt, pq, ldflag,  kcall)
 !          m.tiedtke         e.c.m.w.f.     12/89
 !          purpose.
@@ -3547,11 +3552,11 @@
 !  level 4 subroutines
 !--------------------------------------------------------
       subroutine cubasmcn &
-     &    (klon,     klev,     klevm1,  kk,     pten,&
-     &     pqen,     pqsen,    puen,    pven,   pverv,&
-     &     pgeo,     pgeoh,    ldcum,   ktype,  klab,  plrain,&
-     &     pmfu,     pmfub,    kcbot,   ptu,&
-     &     pqu,      plu,      puu,     pvu,    pmfus,&
+     &    (klon,     klev,     klevm1,  kk,     pten,          &
+     &     pqen,     pqsen,    puen,    pven,   pverv,         &
+     &     pgeo,     pgeoh,    ldcum,   ktype,  klab,  plrain, &
+     &     pmfu,     pmfub,    kcbot,   ptu,                   &
+     &     pqu,      plu,      puu,     pvu,    pmfus,         &
      &     pmfuq,    pmful,    pdmfup)
       implicit none
 !      m.tiedtke         e.c.m.w.f.     12/89
