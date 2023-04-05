@@ -2509,37 +2509,41 @@
 !          ---------
 !          *cuadjtq* for calculating wet bulb t and q at lfs
 !----------------------------------------------------------------------
+
       implicit none
 
-      integer  klev,klon
-      real     ptenh(klon,klev),       pqenh(klon,klev), &
-     &         puen(klon,klev),        pven(klon,klev),  &
-     &         pten(klon,klev),        pqsen(klon,klev),  &
-     &         pgeo(klon,klev),                       &
-     &         pgeoh(klon,klev+1),     paph(klon,klev+1),&
-     &         ptu(klon,klev),         pqu(klon,klev),   &
-     &         puu(klon,klev),         pvu(klon,klev),   &
-     &         plu(klon,klev),                          &
-     &         pmfub(klon),            prfl(klon)
+!--- input arguments:
+      logical,intent(in),dimension(klon):: ldcum
 
-      real     ptd(klon,klev),         pqd(klon,klev),   &
-     &         pud(klon,klev),         pvd(klon,klev),    &
-     &         pmfd(klon,klev),        pmfds(klon,klev),  &
-     &         pmfdq(klon,klev),       pdmfdp(klon,klev)
-      integer  kcbot(klon),            kctop(klon),       &
-     &         kdtop(klon),            ikhsmin(klon)
-      logical  ldcum(klon),                              &
-     &         lddraf(klon)
-      integer  lndj(klon)
+      integer,intent(in):: klev,klon
+      integer,intent(in),dimension(klon):: lndj
+      integer,intent(in),dimension(klon):: kcbot,kctop
 
-      real     ztenwb(klon,klev),      zqenwb(klon,klev), &
-     &         zcond(klon),            zph(klon),         &
-     &         zhsmin(klon)
-      logical  llo2(klon)
-! local variables
-      integer  jl,jk
-      integer  is,ik,icall,ike
-      real     zhsk,zttest,zqtest,zbuo,zmftop
+      real(kind=kind_phys),intent(in),dimension(klon):: pmfub
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pten,pqsen,pgeo,puen,pven
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: ptenh,pqenh
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: ptu,pqu,puu,pvu,plu
+      real(kind=kind_phys),intent(in),dimension(klon,klev+1):: pgeoh,paph
+
+!--- inout arguments:
+      real(kind=kind_phys),intent(inout),dimension(klon):: prfl
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pud,pvd
+
+!--- output arguments:
+      logical,intent(out),dimension(klon):: lddraf
+      integer,intent(out),dimension(klon):: kdtop
+
+      real(kind=kind_phys),intent(out),dimension(klon,klev):: ptd,pqd,pmfd,pmfds,pmfdq,pdmfdp
+
+!--- local variables and arrays:
+      logical,dimension(klon):: llo2
+      integer:: jl,jk
+      integer:: is,ik,icall,ike
+      integer,dimension(klon):: ikhsmin
+
+      real(kind=kind_phys):: zhsk,zttest,zqtest,zbuo,zmftop
+      real(kind=kind_phys),dimension(klon):: zcond,zph,zhsmin
+      real(kind=kind_phys),dimension(klon,klev):: ztenwb,zqenwb
 
 !----------------------------------------------------------------------
 
