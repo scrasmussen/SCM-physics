@@ -442,13 +442,13 @@
 !*    2.     call 'cumastrn'(master-routine for cumulus parameterization)
 !
       call cumastrn        &
-     &    (lq,       km,       km1,      km-1,    ztp1, &
-     &     zqp1,     pum1,     pvm1,     pverv,   zqsat,&
-     &     pqhfl,    ztmst,    pap,      paph,    pgeo, &
-     &     ptte,     pqte,     pvom,     pvol,    prsfc,&
-     &     pssfc,    locum,                             &
-     &     ktype,    icbot,    ictop,    ztu,     zqu,  &
-     &     zlu,      zlude,    zmfu,     zmfd,    zrain,&
+     &    (lq,       km,       km1,      km-1,    ztp1,  &
+     &     zqp1,     pum1,     pvm1,     pverv,   zqsat, &
+     &     pqhfl,    ztmst,    pap,      paph,    pgeo,  &
+     &     ptte,     pqte,     pvom,     pvol,    prsfc, &
+     &     pssfc,    locum,                              &
+     &     ktype,    icbot,    ictop,    ztu,     zqu,   &
+     &     zlu,      zlude,    zmfu,     zmfd,    zrain, &
      &     pcte,     phhfl,    lndj,     pgeoh,   dx)
 !
 !     to include the cloud water and cloud ice detrained from convection
@@ -500,13 +500,13 @@
 !           subroutine cumastrn
 !***********************************************************
       subroutine cumastrn  &
-     &    (klon,     klev,     klevp1,   klevm1,   pten, &
-     &     pqen,     puen,     pven,     pverv,    pqsen,&
-     &     pqhfl,    ztmst,    pap,      paph,     pgeo, &
-     &     ptte,     pqte,     pvom,     pvol,     prsfc,&
-     &     pssfc,    ldcum,                              &
-     &     ktype,    kcbot,    kctop,    ptu,      pqu,&
-     &     plu,      plude,    pmfu,     pmfd,     prain,&
+     &    (klon,     klev,     klevp1,   klevm1,   pten,  &
+     &     pqen,     puen,     pven,     pverv,    pqsen, &
+     &     pqhfl,    ztmst,    pap,      paph,     pgeo,  &
+     &     ptte,     pqte,     pvom,     pvol,     prsfc, &
+     &     pssfc,    ldcum,                               &
+     &     ktype,    kcbot,    kctop,    ptu,      pqu,   &
+     &     plu,      plude,    pmfu,     pmfd,     prain, &
      &     pcte,     phhfl,    lndj,     zgeoh,    dx)
       implicit none
 !
@@ -567,64 +567,59 @@
 !   ----------
 !          paper on massflux scheme (tiedtke,1989)
 !-----------------------------------------------------------------
-      integer  klev,klon,klevp1,klevm1
-      real     pten(klon,klev),        pqen(klon,klev),&
-     &         puen(klon,klev),        pven(klon,klev),&
-     &         ptte(klon,klev),        pqte(klon,klev),&
-     &         pvom(klon,klev),        pvol(klon,klev),&
-     &         pqsen(klon,klev),       pgeo(klon,klev),&
-     &         pap(klon,klev),         paph(klon,klevp1),&
-     &         pverv(klon,klev),       pqhfl(klon),&
-     &         phhfl(klon)
-      real     ptu(klon,klev),         pqu(klon,klev),&
-     &         plu(klon,klev),         plude(klon,klev),&
-     &         pmfu(klon,klev),        pmfd(klon,klev),&
-     &         prain(klon),&
-     &         prsfc(klon),            pssfc(klon)
-      real     ztenh(klon,klev),       zqenh(klon,klev),&
-     &         zgeoh(klon,klevp1),     zqsenh(klon,klev),&
-     &         ztd(klon,klev),         zqd(klon,klev),&
-     &         zmfus(klon,klev),       zmfds(klon,klev),&
-     &         zmfuq(klon,klev),       zmfdq(klon,klev),&
-     &         zdmfup(klon,klev),      zdmfdp(klon,klev),&
-     &         zmful(klon,klev),       zrfl(klon),&
-     &         zuu(klon,klev),         zvu(klon,klev),&
-     &         zud(klon,klev),         zvd(klon,klev),&
-     &         zlglac(klon,klev)
-      real     pmflxr(klon,klevp1),    pmflxs(klon,klevp1)
-      real     zhcbase(klon),&
-     &         zmfub(klon),            zmfub1(klon),&
-     &         zdhpbl(klon)
-      real     zsfl(klon),             zdpmel(klon,klev),&
-     &         pcte(klon,klev),        zcape(klon),&
-     &         zcape1(klon),           zcape2(klon),&
-     &         ztauc(klon),            ztaubl(klon),&
-     &         zheat(klon)
-      real     wup(klon),              zdqcv(klon)
-      real     wbase(klon),            zmfuub(klon)
-      real     upbl(klon)
-      real     dx(klon)
-      real     pmfude_rate(klon,klev), pmfdde_rate(klon,klev)
-      real     zmfuus(klon,klev),      zmfdus(klon,klev)
-      real     zuv2(klon,klev),ztenu(klon,klev),ztenv(klon,klev)
-      real     zmfuvb(klon),zsum12(klon),zsum22(klon)
-      integer  ilab(klon,klev),        idtop(klon),&
-     &         ictop0(klon),           ilwmin(klon)
-      integer  kdpl(klon)
-      integer  kcbot(klon),            kctop(klon),&
-     &         ktype(klon),            lndj(klon)
-      logical  ldcum(klon)
-      logical  loddraf(klon),          llo1,   llo2(klon)
 
-!  local varaiables
-      real     zcons,zcons2,zqumqe,zdqmin,zdh,zmfmax
-      real     zalfaw,zalv,zqalv,zc5ldcp,zc4les,zhsat,zgam,zzz,zhhat
-      real     zpbmpt,zro,zdz,zdp,zeps,zfac,wspeed
-      integer  jl,jk,ik
-      integer  ikb,ikt,icum,itopm2
-      real     ztmst,ztau,zerate,zderate,zmfa
-      real     zmfs(klon),pmean(klev),zlon
-      real     zduten,zdvten,ztdis,pgf_u,pgf_v
+!--- input arguments:
+      integer,intent(in):: klev,klon,klevp1,klevm1
+      integer,intent(in),dimension(klon):: lndj
+
+      real(kind=kind_phys),intent(in):: ztmst
+      real(kind=kind_phys),intent(in),dimension(klon):: dx
+      real(kind=kind_phys),intent(in),dimension(klon):: pqhfl,phhfl
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pten,pqen,puen,pven,pverv
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: pap,pgeo
+      real(kind=kind_phys),intent(in),dimension(klon,klevp1):: paph,zgeoh
+
+!--- inout arguments:
+      integer,intent(inout),dimension(klon):: ktype,kcbot,kctop
+      logical,intent(inout),dimension(klon):: ldcum
+
+      real(kind=kind_phys),intent(inout),dimension(klon):: pqsen
+      real(kind=kind_phys),intent(inout),dimension(klon):: prsfc,pssfc,prain
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: pcte,ptte,pqte,pvom,pvol
+      real(kind=kind_phys),intent(inout),dimension(klon,klev):: ptu,pqu,plu,plude,pmfu,pmfd
+
+!--- local variables and arrays:
+      logical:: llo1
+      logical,dimension(klon):: loddraf,llo2
+
+      integer:: jl,jk,ik
+      integer:: ikb,ikt,icum,itopm2
+      integer,dimension(klon):: kdpl,idtop,ictop0,ilwmin
+      integer,dimension(klon,klev):: ilab
+
+      real(kind=kind_phys):: zcons,zcons2,zqumqe,zdqmin,zdh,zmfmax
+      real(kind=kind_phys):: zalfaw,zalv,zqalv,zc5ldcp,zc4les,zhsat,zgam,zzz,zhhat
+      real(kind=kind_phys):: zpbmpt,zro,zdz,zdp,zeps,zfac,wspeed
+      real(kind=kind_phys):: zduten,zdvten,ztdis,pgf_u,pgf_v
+      real(kind=kind_phys):: zlon
+      real(kind=kind_phys):: ztau,zerate,zderate,zmfa
+      real(kind=kind_phys),dimension(klon):: zmfs
+      real(kind=kind_phys),dimension(klon):: zsfl,zcape,zcape1,zcape2,ztauc,ztaubl,zheat
+      real(kind=kind_phys),dimension(klon):: wup,zdqcv
+      real(kind=kind_phys),dimension(klon):: wbase,zmfuub
+      real(kind=kind_phys),dimension(klon):: upbl
+      real(kind=kind_phys),dimension(klon):: zhcbase,zmfub,zmfub1,zdhpbl
+      real(kind=kind_phys),dimension(klon):: zmfuvb,zsum12,zsum22
+      real(kind=kind_phys),dimension(klon):: zrfl
+      real(kind=kind_phys),dimension(klev):: pmean
+      real(kind=kind_phys),dimension(klon,klev):: pmfude_rate,pmfdde_rate
+      real(kind=kind_phys),dimension(klon,klev):: zdpmel
+      real(kind=kind_phys),dimension(klon,klev):: zmfuus,zmfdus,zuv2,ztenu,ztenv
+      real(kind=kind_phys),dimension(klon,klev):: ztenh,zqenh,zqsenh,ztd,zqd
+      real(kind=kind_phys),dimension(klon,klev):: zmfus,zmfds,zmfuq,zmfdq,zdmfup,zdmfdp,zmful
+      real(kind=kind_phys),dimension(klon,klev):: zuu,zvu,zud,zvd,zlglac
+      real(kind=kind_phys),dimension(klon,klevp1):: pmflxr,pmflxs
+
 !-------------------------------------------
 !     1.    specify constants and parameters
 !-------------------------------------------
@@ -635,13 +630,13 @@
 !*    2.    initialize values at vertical grid points in 'cuini'
 !--------------------------------------------------------------
       call cuinin &
-     &    (klon,     klev,     klevp1,   klevm1,   pten, &
-     &     pqen,     pqsen,    puen,     pven,     pverv,&
-     &     pgeo,     paph,     zgeoh,    ztenh,    zqenh,&
-     &     zqsenh,   ilwmin,   ptu,      pqu,      ztd,  &
-     &     zqd,      zuu,      zvu,      zud,      zvd,  &
-     &     pmfu,     pmfd,     zmfus,    zmfds,    zmfuq,&
-     &     zmfdq,    zdmfup,   zdmfdp,   zdpmel,   plu,  &
+     &    (klon,     klev,     klevp1,   klevm1,   pten,  &
+     &     pqen,     pqsen,    puen,     pven,     pverv, &
+     &     pgeo,     paph,     zgeoh,    ztenh,    zqenh, &
+     &     zqsenh,   ilwmin,   ptu,      pqu,      ztd,   &
+     &     zqd,      zuu,      zvu,      zud,      zvd,   &
+     &     pmfu,     pmfd,     zmfus,    zmfds,    zmfuq, &
+     &     zmfdq,    zdmfup,   zdmfdp,   zdpmel,   plu,   &
      &     plude,    ilab)
 
 !----------------------------------
@@ -651,11 +646,12 @@
 !              and the cumulus type 1 or 2
 !          -------------------------------------------
        call cutypen &
-     &     ( klon,     klev,     klevp1,   klevm1,     pqen,&
-     &      ztenh,    zqenh,     zqsenh,    zgeoh,     paph,&
-     &      phhfl,    pqhfl,       pgeo,    pqsen,      pap,&
-     &       pten,     lndj,        ptu,      pqu,     ilab,&
-     &      ldcum,    kcbot,     ictop0,    ktype,    wbase,    plu,   kdpl)
+     &     ( klon,     klev,     klevp1,   klevm1,     pqen, &
+     &      ztenh,    zqenh,     zqsenh,    zgeoh,     paph, &
+     &      phhfl,    pqhfl,       pgeo,    pqsen,      pap, &
+     &       pten,     lndj,        ptu,      pqu,     ilab, &
+     &      ldcum,    kcbot,     ictop0,    ktype,    wbase, &
+     &        plu,   kdpl)
 
 !*         (b) assign the first guess mass flux at cloud base
 !              ------------------------------------------
@@ -707,15 +703,16 @@
 !*    (a) do ascent in 'cuasc'in absence of downdrafts
 !----------------------------------------------------------
       call cuascn &
-     &    (klon,     klev,     klevp1,   klevm1,   ztenh,&
-     &     zqenh,    puen,     pven,     pten,     pqen,&
-     &     pqsen,    pgeo,     zgeoh,    pap,      paph,&
-     &     pqte,     pverv,    ilwmin,   ldcum,    zhcbase,&
-     &     ktype,    ilab,     ptu,      pqu,      plu,&
-     &     zuu,      zvu,      pmfu,     zmfub,&
-     &     zmfus,    zmfuq,    zmful,    plude,    zdmfup,&
-     &     kcbot,    kctop,    ictop0,   icum,     ztmst,&
-     &     zqsenh,   zlglac,   lndj,     wup,      wbase,   kdpl,  pmfude_rate )
+     &    (klon,     klev,     klevp1,   klevm1,   ztenh,   &
+     &     zqenh,    puen,     pven,     pten,     pqen,    &
+     &     pqsen,    pgeo,     zgeoh,    pap,      paph,    &
+     &     pqte,     pverv,    ilwmin,   ldcum,    zhcbase, &
+     &     ktype,    ilab,     ptu,      pqu,      plu,     &
+     &     zuu,      zvu,      pmfu,     zmfub,             &
+     &     zmfus,    zmfuq,    zmful,    plude,    zdmfup,  &
+     &     kcbot,    kctop,    ictop0,   icum,     ztmst,   &
+     &     zqsenh,   zlglac,   lndj,     wup,      wbase,   &
+     &     kdpl,  pmfude_rate)
 
 !*     (b) check cloud depth and change entrainment rate accordingly
 !          calculate precipitation rate (for downdraft calculation)
@@ -754,24 +751,24 @@
       if(lmfdd) then
 !*      (a) determine lfs in 'cudlfsn'
 !--------------------------------------
-        call cudlfsn    &
+        call cudlfsn &
      &    (klon,     klev,&
-     &     kcbot,    kctop,    lndj,   ldcum,   &
-     &     ztenh,    zqenh,    puen,     pven,   &
-     &     pten,     pqsen,    pgeo,              &
-     &     zgeoh,    paph,     ptu,      pqu,      plu,   &
-     &     zuu,      zvu,      zmfub,    zrfl,             &
-     &     ztd,      zqd,      zud,      zvd,               &
-     &     pmfd,     zmfds,    zmfdq,    zdmfdp,             &
+     &     kcbot,    kctop,    lndj,   ldcum,  &
+     &     ztenh,    zqenh,    puen,   pven,   &
+     &     pten,     pqsen,    pgeo,           &
+     &     zgeoh,    paph,     ptu,    pqu,   plu, &
+     &     zuu,      zvu,      zmfub,  zrfl,   &
+     &     ztd,      zqd,      zud,    zvd,    &
+     &     pmfd,     zmfds,    zmfdq,  zdmfdp, &
      &     idtop,    loddraf)
 !*     (b)  determine downdraft t,q and fluxes in 'cuddrafn'
 !------------------------------------------------------------
-        call cuddrafn                                         &
-     &   ( klon,     klev,     loddraf,                      &
-     &     ztenh,    zqenh,    puen,     pven,                 &
-     &     pgeo,     zgeoh,    paph,     zrfl,                  &
-     &     ztd,      zqd,      zud,      zvd,      pmfu,         &
-     &     pmfd,     zmfds,    zmfdq,    zdmfdp,   pmfdde_rate      )
+        call cuddrafn &
+     &    (klon,     klev,     loddraf,                  &
+     &     ztenh,    zqenh,    puen,     pven,           &
+     &     pgeo,     zgeoh,    paph,     zrfl,           &
+     &     ztd,      zqd,      zud,      zvd,      pmfu, &
+     &     pmfd,     zmfds,    zmfdq,    zdmfdp,   pmfdde_rate)
 !-----------------------------------------------------------
       end if
 !
@@ -979,15 +976,15 @@
 !----------------------------------------------------------
 !*    7.0      determine final convective fluxes in 'cuflx'
 !----------------------------------------------------------
-       call cuflxn                                        &
-     &  (  klon,     klev,     ztmst                      &
-     &  ,  pten,     pqen,     pqsen,    ztenh,   zqenh   &
-     &  ,  paph,     pap,      zgeoh,    lndj,    ldcum   &
-     &  ,  kcbot,    kctop,    idtop,    itopm2           &
-     &  ,  ktype,    loddraf                              &
-     &  ,  pmfu,     pmfd,     zmfus,    zmfds            &
-     &  ,  zmfuq,    zmfdq,    zmful,    plude            &
-     &  ,  zdmfup,   zdmfdp,   zdpmel,   zlglac           &
+       call cuflxn                                      &
+     &  (  klon,     klev,     ztmst                    &
+     &  ,  pten,     pqen,     pqsen,    ztenh,   zqenh &
+     &  ,  paph,     pap,      zgeoh,    lndj,    ldcum &
+     &  ,  kcbot,    kctop,    idtop,    itopm2         &
+     &  ,  ktype,    loddraf                            &
+     &  ,  pmfu,     pmfd,     zmfus,    zmfds          &
+     &  ,  zmfuq,    zmfdq,    zmful,    plude          &
+     &  ,  zdmfup,   zdmfdp,   zdpmel,   zlglac         &
      &  ,  prain,    pmfdde_rate, pmflxr, pmflxs )
 
 ! some adjustments needed
@@ -1079,9 +1076,9 @@
 !----------------------------------------------------------------
 !*    8.0      update tendencies for t and q in subroutine cudtdq
 !----------------------------------------------------------------
-      call cudtdqn(klon,klev,itopm2,kctop,idtop,ldcum,loddraf, &
-                 ztmst,paph,zgeoh,pgeo,pten,ztenh,pqen,zqenh,pqsen,     &
-                 zlglac,plude,pmfu,pmfd,zmfus,zmfds,zmfuq,zmfdq,zmful,   &
+      call cudtdqn(klon,klev,itopm2,kctop,idtop,ldcum,loddraf,         &
+                 ztmst,paph,zgeoh,pgeo,pten,ztenh,pqen,zqenh,pqsen,    &
+                 zlglac,plude,pmfu,pmfd,zmfus,zmfds,zmfuq,zmfdq,zmful, &
                  zdmfup,zdmfdp,zdpmel,ptte,pqte,pcte)
 !----------------------------------------------------------------
 !*    9.0      update tendencies for u and u in subroutine cududv
