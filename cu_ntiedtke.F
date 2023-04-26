@@ -388,7 +388,10 @@
 
       real(kind=kind_phys):: ztmst,fliq,fice,ztc,zalf,tt
       real(kind=kind_phys):: ztpp1,zew,zqs,zcor
+      real(kind=kind_phys):: dxref
+
       real(kind=kind_phys),dimension(lq):: pqhfl,prsfc,pssfc,phhfl,zrain
+      real(kind=kind_phys),dimension(lq):: scale_fac,scale_fac2
 
       real(kind=kind_phys),dimension(lq,km):: pum1,pvm1,ztt,ptte,pqte,pvom,pvol,pverv,pgeo
       real(kind=kind_phys),dimension(lq,km):: zqq,pcte
@@ -398,6 +401,19 @@
 !-----------------------------------------------------------------------------------------------------------------
 !
       ztmst=dt
+!
+!  set scale-dependency factor when dx is < 15 km
+!
+      dxref = 15000.
+      do j=1,lq
+      if (dx(j).lt.dxref) then
+          scale_fac(j) = (1.06133+log(dxref/dx(j)))**3
+          scale_fac2(j) = scale_fac(j)**0.5
+      else
+          scale_fac(j) = 1.+1.33e-5*dx(j)
+          scale_fac2(j) = 1.
+      end if
+      end do
 !
 !  masv flux diagnostics.
 !
@@ -449,7 +465,8 @@
      &     pssfc,    locum,                              &
      &     ktype,    icbot,    ictop,    ztu,     zqu,   &
      &     zlu,      zlude,    zmfu,     zmfd,    zrain, &
-     &     pcte,     phhfl,    lndj,     pgeoh,   dx)
+     &     pcte,     phhfl,    lndj,     pgeoh,   dx,    &
+     &     scale_fac, scale_fac2)
 !
 !     to include the cloud water and cloud ice detrained from convection
 !
@@ -507,7 +524,8 @@
      &     pssfc,    ldcum,                               &
      &     ktype,    kcbot,    kctop,    ptu,      pqu,   &
      &     plu,      plude,    pmfu,     pmfd,     prain, &
-     &     pcte,     phhfl,    lndj,     zgeoh,    dx)
+     &     pcte,     phhfl,    lndj,     zgeoh,    dx,    &
+     &     scale_fac,  scale_fac2)
       implicit none
 !
 !***cumastrn*  master routine for cumulus massflux-scheme
@@ -575,6 +593,7 @@
       real(kind=kind_phys),intent(in):: ztmst
       real(kind=kind_phys),intent(in),dimension(klon):: dx
       real(kind=kind_phys),intent(in),dimension(klon):: pqhfl,phhfl
+      real(kind=kind_phys),intent(in),dimension(klon):: scale_fac,scale_fac2
       real(kind=kind_phys),intent(in),dimension(klon,klev):: pten,pqen,puen,pven,pverv
       real(kind=kind_phys),intent(in),dimension(klon,klev):: pap,pgeo
       real(kind=kind_phys),intent(in),dimension(klon,klevp1):: paph,zgeoh
@@ -651,7 +670,7 @@
      &      phhfl,    pqhfl,       pgeo,    pqsen,      pap, &
      &       pten,     lndj,        ptu,      pqu,     ilab, &
      &      ldcum,    kcbot,     ictop0,    ktype,    wbase, &
-     &        plu,   kdpl)
+     &        plu,    kdpl)
 
 !*         (b) assign the first guess mass flux at cloud base
 !              ------------------------------------------
@@ -712,7 +731,7 @@
      &     zmfus,    zmfuq,    zmful,    plude,    zdmfup,  &
      &     kcbot,    kctop,    ictop0,   icum,     ztmst,   &
      &     zqsenh,   zlglac,   lndj,     wup,      wbase,   &
-     &     kdpl,  pmfude_rate)
+     &     kdpl,     pmfude_rate)
 
 !*     (b) check cloud depth and change entrainment rate accordingly
 !          calculate precipitation rate (for downdraft calculation)
@@ -828,10 +847,10 @@
        if(ldcum(jl).and.ktype(jl).eq.1) then
            ikb = kcbot(jl)
            ikt = kctop(jl)
-           ztau = ztauc(jl) * (1.+1.33e-5*dx(jl))
-           ztau = max(ztmst,ztau)
-           ztau = max(360.,ztau)
-           ztau = min(10800.,ztau)
+           ztauc(jl) = max(ztmst,ztauc(jl))
+           ztauc(jl) = max(360.,ztauc(jl))
+           ztauc(jl) = min(10800.,ztauc(jl))
+           ztau = ztauc(jl) * scale_fac(jl)
            if(nonequil) then
              zcape2(jl)= max(0.,zcape2(jl))
              zcape(jl) = max(0.,min(zcape1(jl)-zcape2(jl),5000.))
@@ -870,6 +889,7 @@
            else
              zmfub1(jl) = zmfub(jl)
            end if
+           zmfub1(jl) = zmfub1(jl)/scale_fac2(jl)
            zmfub1(jl) = min(zmfub1(jl),zmfmax)
          end if
 
@@ -1380,7 +1400,8 @@
      &     ptenh,   pqenh,     pqsenh,    pgeoh,     paph, &
      &       hfx,     qfx,       pgeo,    pqsen,      pap, &
      &      pten,    lndj,       cutu,     cuqu,    culab, &
-     &     ldcum,   cubot,      cutop,    ktype,    wbase,    culu,   kdpl  )
+     &     ldcum,   cubot,      cutop,    ktype,    wbase, &
+     &      culu,    kdpl)
 !      zhang & wang      iprc           2011-2013
 !***purpose.
 !   --------
@@ -1917,7 +1938,8 @@
      &     puu,      pvu,      pmfu,     pmfub,             &
      &     pmfus,    pmfuq,    pmful,    plude,    pdmfup,  &
      &     kcbot,    kctop,    kctop0,   kcum,     ztmst,   &
-     &     pqsenh,   plglac,   lndj,     wup,      wbase,   kdpl, pmfude_rate)
+     &     pqsenh,   plglac,   lndj,     wup,      wbase,   &
+     &     kdpl,     pmfude_rate)
 
       implicit none
 !     this routine does the calculations for cloud ascents
@@ -2121,11 +2143,11 @@
 ! ---------------------------------------------------------------------
       ik=jk
       call cubasmcn&
-     &    (klon,     klev,     klevm1,   ik,      pten,&
-     &     pqen,     pqsen,    puen,     pven,    pverv,&
-     &     pgeo,     pgeoh,    ldcum,   ktype,   klab,  zlrain,&
-     &     pmfu,     pmfub,    kcbot,   ptu,&
-     &     pqu,      plu,      puu,     pvu,      pmfus,&
+     &    (klon,     klev,     klevm1,   ik,      pten,          &
+     &     pqen,     pqsen,    puen,     pven,    pverv,         &
+     &     pgeo,     pgeoh,    ldcum,    ktype,   klab,  zlrain, &
+     &     pmfu,     pmfub,    kcbot,    ptu,                    &
+     &     pqu,      plu,      puu,      pvu,      pmfus,        &
      &     pmfuq,    pmful,    pdmfup)
       is = 0
       jlm = 0
@@ -3585,6 +3607,7 @@
 
       real(kind=kind_phys),intent(in),dimension(klon,klev):: pten,pqen,pqsen,pgeo,pverv
       real(kind=kind_phys),intent(in),dimension(klon,klev):: puen,pven ! not used.
+      real(kind=kind_phys),intent(in),dimension(klon,klev):: puu,pvu   ! not used.
       real(kind=kind_phys),intent(in),dimension(klon,klev+1):: pgeoh
 
 !--- output arguments:
@@ -3595,7 +3618,6 @@
       real(kind=kind_phys),intent(out),dimension(klon,klev):: plrain
       real(kind=kind_phys),intent(out),dimension(klon,klev):: ptu,pqu,plu
       real(kind=kind_phys),intent(out),dimension(klon,klev):: pmfu,pmfus,pmfuq,pmful
-      real(kind=kind_phys),intent(out),dimension(klon,klev):: puu,pvu  ! not used.
       real(kind=kind_phys),intent(out),dimension(klon,klev):: pdmfup
 
 !--- local variables and arrays:
@@ -3626,8 +3648,6 @@
             klab(jl,kk+1)=1
             plrain(jl,kk+1)=0.0
             ktype(jl)=3
-            puu(jl,kk+1)=0.
-            pvu(jl,kk+1)=0.
           end if
          end if
         end do
