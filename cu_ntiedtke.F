@@ -1,7 +1,6 @@
 !=================================================================================================================
  module cu_ntiedtke_common
  use ccpp_kinds,only: kind_phys
- use mpas_log
 
 
  implicit none
@@ -96,8 +95,6 @@
  integer,intent(out):: errflg
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine cu_ntiedtke_init:')
 
  alf = con_xlf
  als = con_xls
@@ -121,8 +118,6 @@
 
  errmsg = 'cu_ntiedtke_init OK'
  errflg = 0
-
- call mpas_log_write('--- end subroutine cu_ntiedtke_init:')
 
  end subroutine cu_ntiedtke_init
 
