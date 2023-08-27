@@ -9,6 +9,7 @@ OBJS = \
 	bl_gwdo.o \
 	bl_ysu.o  \
 	cu_ntiedtke.o \
+	mp_radar.o \
 	mp_wsm6_effectRad.o \
 	mp_wsm6.o \
 	sf_sfclayrev.o \
