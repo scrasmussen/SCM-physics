@@ -3,13 +3,14 @@
  use ccpp_kinds,only: kind_phys
  use module_libmassv,only: vrec,vsqrt
 
+ use mp_radar
 
  implicit none
  private
- public:: mp_wsm6_run,  &
-          mp_wsm6_init, &
-          mp_wsm6_final
-
+ public:: mp_wsm6_run,   &
+          mp_wsm6_init,  &
+          mp_wsm6_final, &
+          refl10cm_wsm6
 
  real(kind=kind_phys),parameter,private:: dtcldcr = 120.    ! maximum time step for minor loops
  real(kind=kind_phys),parameter,private:: n0r = 8.e6        ! intercept parameter rain
@@ -162,6 +163,22 @@
  rsloper3max = rsloper2max * rslopermax
  rslopes3max = rslopes2max * rslopesmax
  rslopeg3max = rslopeg2max * rslopegmax
+
+!+---+-----------------------------------------------------------------+
+!.. Set these variables needed for computing radar reflectivity.  These
+!.. get used within radar_init to create other variables used in the
+!.. radar module.
+ xam_r = PI*denr/6.
+ xbm_r = 3.
+ xmu_r = 0.
+ xam_s = PI*dens/6.
+ xbm_s = 3.
+ xmu_s = 0.
+ xam_g = PI*deng/6.
+ xbm_g = 3.
+ xmu_g = 0.
+
+ call radar_init
 
  errmsg = 'mp_wsm6_init OK'
  errflg = 0
@@ -2245,6 +2262,179 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
  enddo i_loop
 
  end subroutine nislfv_rain_plm6
+
+!=================================================================================================================
+ subroutine refl10cm_wsm6(qv1d,qr1d,qs1d,qg1d,t1d,p1d,dBZ,kts,kte)
+ implicit none
+!=================================================================================================================
+
+!..Sub arguments
+ integer,intent(in):: kts,kte
+ real(kind=kind_phys),intent(in),dimension(kts:kte):: qv1d,qr1d,qs1d,qg1d,t1d,p1d
+ real(kind=kind_phys),intent(inout),dimension(kts:kte):: dBz
+
+!..Local variables
+ logical:: melti
+ logical,dimension(kts:kte):: l_qr,l_qs,l_qg
+
+ INTEGER:: i,k,k_0,kbot,n
+
+ real(kind=kind_phys),parameter:: R=287.
+ real(kind=kind_phys):: temp_c
+ real(kind=kind_phys),dimension(kts:kte):: temp,pres,qv,rho
+ real(kind=kind_phys),dimension(kts:kte):: rr,rs,rg
+ real(kind=kind_phys),dimension(kts:kte):: ze_rain,ze_snow,ze_graupel
+
+ double precision:: fmelt_s,fmelt_g
+ double precision:: cback,x,eta,f_d
+ double precision,dimension(kts:kte):: ilamr,ilams,ilamg
+ double precision,dimension(kts:kte):: n0_r, n0_s, n0_g
+ double precision:: lamr,lams,lamg
+
+!-----------------------------------------------------------------------------------------------------------------
+
+ do k = kts, kte
+    dBZ(k) = -35.0
+ enddo
+
+!+---+-----------------------------------------------------------------+
+!..Put column of data into local arrays.
+!+---+-----------------------------------------------------------------+
+ do k = kts, kte
+    temp(k) = t1d(k)
+    temp_c = min(-0.001, temp(k)-273.15)
+    qv(k) = max(1.e-10, qv1d(k))
+    pres(k) = p1d(k)
+    rho(k) = 0.622*pres(k)/(R*temp(k)*(qv(k)+0.622))
+
+    if (qr1d(k) .gt. 1.e-9) then
+       rr(k) = qr1d(k)*rho(k)
+       n0_r(k) = n0r
+       lamr = (xam_r*xcrg(3)*n0_r(k)/rr(k))**(1./xcre(1))
+       ilamr(k) = 1./lamr
+       l_qr(k) = .true.
+    else
+       rr(k) = 1.e-12
+       l_qr(k) = .false.
+    endif
+
+    if (qs1d(k) .gt. 1.e-9) then
+       rs(k) = qs1d(k)*rho(k)
+       n0_s(k) = min(n0smax, n0s*exp(-alpha*temp_c))
+       lams = (xam_s*xcsg(3)*n0_s(k)/rs(k))**(1./xcse(1))
+       ilams(k) = 1./lams
+       l_qs(k) = .true.
+    else
+       rs(k) = 1.e-12
+       l_qs(k) = .false.
+    endif
+
+    if (qg1d(k) .gt. 1.e-9) then
+       rg(k) = qg1d(k)*rho(k)
+       n0_g(k) = n0g
+       lamg = (xam_g*xcgg(3)*n0_g(k)/rg(k))**(1./xcge(1))
+       ilamg(k) = 1./lamg
+       l_qg(k) = .true.
+    else
+       rg(k) = 1.e-12
+       l_qg(k) = .false.
+    endif
+ enddo
+
+!+---+-----------------------------------------------------------------+
+!..Locate K-level of start of melting (k_0 is level above).
+!+---+-----------------------------------------------------------------+
+      melti = .false.
+      k_0 = kts
+      do k = kte-1, kts, -1
+         if ( (temp(k).gt.273.15) .and. L_qr(k)                         &
+                                  .and. (L_qs(k+1).or.L_qg(k+1)) ) then
+            k_0 = MAX(k+1, k_0)
+            melti=.true.
+            goto 195
+         endif
+      enddo
+ 195  continue
+
+!+---+-----------------------------------------------------------------+
+!..Assume Rayleigh approximation at 10 cm wavelength. Rain (all temps)
+!.. and non-water-coated snow and graupel when below freezing are
+!.. simple. Integrations of m(D)*m(D)*N(D)*dD.
+!+---+-----------------------------------------------------------------+
+
+ do k = kts, kte
+    ze_rain(k) = 1.e-22
+    ze_snow(k) = 1.e-22
+    ze_graupel(k) = 1.e-22
+    if (l_qr(k)) ze_rain(k) = n0_r(k)*xcrg(4)*ilamr(k)**xcre(4)
+    if (l_qs(k)) ze_snow(k) = (0.176/0.93) * (6.0/pi)*(6.0/pi)     &
+                            * (xam_s/900.0)*(xam_s/900.0)          &
+                            * n0_s(k)*xcsg(4)*ilams(k)**xcse(4)
+    if (l_qg(k)) ze_graupel(k) = (0.176/0.93) * (6.0/pi)*(6.0/pi)  &
+                            * (xam_g/900.0)*(xam_g/900.0)       &
+                            * n0_g(k)*xcgg(4)*ilamg(k)**xcge(4)
+ enddo
+
+
+!+---+-----------------------------------------------------------------+
+!..Special case of melting ice (snow/graupel) particles.  Assume the
+!.. ice is surrounded by the liquid water.  Fraction of meltwater is
+!.. extremely simple based on amount found above the melting level.
+!.. Uses code from Uli Blahak (rayleigh_soak_wetgraupel and supporting
+!.. routines).
+!+---+-----------------------------------------------------------------+
+
+ if (melti .and. k_0.ge.kts+1) then
+    do k = k_0-1, kts, -1
+
+!..Reflectivity contributed by melting snow
+       if (L_qs(k) .and. L_qs(k_0) ) then
+          fmelt_s = MAX(0.005d0, MIN(1.0d0-rs(k)/rs(k_0), 0.99d0))
+          eta = 0.d0
+          lams = 1./ilams(k)
+          do n = 1, nrbins
+             x = xam_s * xxDs(n)**xbm_s
+             call rayleigh_soak_wetgraupel (x,dble(xocms),dble(xobms), &
+                   fmelt_s, melt_outside_s, m_w_0, m_i_0, lamda_radar, &
+                   cback, mixingrulestring_s, matrixstring_s,          &
+                   inclusionstring_s, hoststring_s,                    &
+                   hostmatrixstring_s, hostinclusionstring_s)
+              f_d = n0_s(k)*xxds(n)**xmu_s * dexp(-lams*xxds(n))
+              eta = eta + f_d * cback * simpson(n) * xdts(n)
+          enddo
+          ze_snow(k) = sngl(lamda4 / (pi5 * k_w) * eta)
+       endif
+
+
+!..Reflectivity contributed by melting graupel
+
+       if (l_qg(k) .and. l_qg(k_0) ) then
+          fmelt_g = max(0.005d0, min(1.0d0-rg(k)/rg(k_0), 0.99d0))
+          eta = 0.d0
+          lamg = 1./ilamg(k)
+          do n = 1, nrbins
+             x = xam_g * xxdg(n)**xbm_g
+             call rayleigh_soak_wetgraupel (x,dble(xocmg),dble(xobmg), &
+                   fmelt_g, melt_outside_g, m_w_0, m_i_0, lamda_radar, &
+                   cback, mixingrulestring_g, matrixstring_g,          &
+                   inclusionstring_g, hoststring_g,                    &
+                   hostmatrixstring_g, hostinclusionstring_g)
+             f_d = n0_g(k)*xxdg(n)**xmu_g * dexp(-lamg*xxdg(n))
+             eta = eta + f_d * cback * simpson(n) * xdtg(n)
+          enddo
+          ze_graupel(k) = sngl(lamda4 / (pi5 * k_w) * eta)
+       endif
+
+    enddo
+ endif
+
+ do k = kte, kts, -1
+    dBZ(k) = 10.*log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.d18)
+ enddo
+
+
+ end subroutine refl10cm_wsm6
+
 
 !=================================================================================================================
  end module mp_wsm6

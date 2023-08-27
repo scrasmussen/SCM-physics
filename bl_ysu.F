@@ -330,10 +330,9 @@
    real(kind=kind_phys),    dimension( its:ite )             ::                &
                frc_urb1d
 
-   real(kind=kind_phys),     dimension( kts:kte )   :: dummy1,dummy2,dummy4
-   real(kind=kind_phys),     dimension( kms:kme )   :: dummy3
+   real(kind=kind_phys),     dimension( kts:kte  ) :: thvx_1d,tke_1d,dzq_1d
+   real(kind=kind_phys),     dimension( kts:kte+1) :: zq_1d
 
-   real(kind=kind_phys):: temp1,temp2
 !
 !-------------------------------------------------------------------------------
 !
@@ -1241,13 +1240,13 @@
 !     CALL GET_PBLH(KTS,KTE,pblh_ysu(i),thvx(i,kts:kte),&
 !     &    tke_ysu(i,kts:kte),zq(i,kts:kte+1),dzq(i,kts:kte),xland(i))
       do k = kts,kte
-         dummy1(k) = thvx(i,k)
-         dummy2(k) = tke_ysu(i,k)
-         dummy3(k) = zq(i,k)
-         dummy4(k) = dzq(i,k)
+         thvx_1d(k) = thvx(i,k)
+         tke_1d(k)  = tke_ysu(i,k)
+         zq_1d(k)   = zq(i,k)
+         dzq_1d(k)  = dzq(i,k)
       enddo
-      dummy3(kte+1) = zq(i,kte+1)
-      call get_pblh(kts,kte,pblh_ysu(i),dummy1,dummy2,dummy3,dummy4,xland(i))
+      zq_1d(kte+1) = zq(i,kte+1)
+      call get_pblh(kts,kte,pblh_ysu(i),thvx_1d,tke_1d,zq_1d,dzq_1d,xland(i))
 
 !--- end of paj tke
 ! compute vconv
