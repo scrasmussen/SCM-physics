@@ -1,7 +1,7 @@
 [ccpp-table-properties]
   name = sf_sfclayrev
   type = scheme
-  dependencies = ../machine.F
+  dependencies = ../mmm_kinds.F90
 
 ########################################################################
 [ccpp-arg-table]
