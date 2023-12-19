@@ -1534,7 +1534,7 @@ subroutine slope_wsm6(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
   integer:: i,k
 
   real(kind=kind_phys),parameter:: t0c = 273.15
-  real(kind=kind_phys):: lamdar,lamdas,lamdag,x,y,z,supcol
+  real(kind=kind_phys):: supcol
   real(kind=kind_phys),dimension(its:ite,kts:kte):: n0sfac
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -2435,7 +2435,7 @@ end subroutine refl10cm_wsm6
 pure function cpmcal(x,qmin,cpv,cpd) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,qmin,cpv,cpd
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
 end function cpmcal
 
@@ -2443,7 +2443,7 @@ end function cpmcal
 pure function xlcal(x,xlv0,t0c) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,xlv0,t0c
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = xlv0-xlv1*(x-t0c)
 end function xlcal
 
@@ -2451,7 +2451,7 @@ end function xlcal
 pure function diffus(x,y) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,y
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = 8.794e-5 * exp(log(x)*(1.81)) / y
 end function diffus
 
@@ -2459,7 +2459,7 @@ end function diffus
 pure function viscos(x,y) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,y
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y
 end function viscos
 
@@ -2467,7 +2467,7 @@ end function viscos
 pure function xka(x,y) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,y
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = 1.414e3*viscos(x,y)*y
 end function xka
 
@@ -2475,7 +2475,7 @@ end function xka
 pure function diffac(a,b,c,d,e,rv) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: a,b,c,d,e,rv
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
 end function diffac
 
@@ -2484,7 +2484,7 @@ end function diffac
 pure function venfac(a,b,c,den0) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: a,b,c,den0
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333))) &
                 /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
 end function venfac
@@ -2493,7 +2493,7 @@ end function venfac
 pure function conden(a,b,c,d,e,qmin,rv) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: a,b,c,d,e,qmin,rv
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
 end function conden
 
@@ -2501,7 +2501,7 @@ end function conden
 pure function slope_wsm6_lamdar(x,y) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,y
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = sqrt(sqrt(pidn0r/(x*y)))
 end function slope_wsm6_lamdar
 
@@ -2509,7 +2509,7 @@ end function slope_wsm6_lamdar
 pure function slope_wsm6_lamdas(x,y,z) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,y,z
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = sqrt(sqrt(pidn0s*z/(x*y)))
 end function slope_wsm6_lamdas
 
@@ -2517,7 +2517,7 @@ end function slope_wsm6_lamdas
 pure function slope_wsm6_lamdag(x,y) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,y
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res =  sqrt(sqrt(pidn0g/(x*y)))
 end function slope_wsm6_lamdag
 
@@ -2525,7 +2525,7 @@ end function slope_wsm6_lamdag
 pure function slope_rain_lamdar(x,y) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,y
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = sqrt(sqrt(pidn0r/(x*y)))
 end function slope_rain_lamdar
 
@@ -2533,7 +2533,7 @@ end function slope_rain_lamdar
 pure function slope_snow_lamdas(x,y,z) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,y,z
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = sqrt(sqrt(pidn0s*z/(x*y)))
 end function slope_snow_lamdas
 
@@ -2541,7 +2541,7 @@ end function slope_snow_lamdas
 pure function slope_graup_lamdag(x,y) result(res)
   implicit none
   real(kind=kind_phys), intent(in) :: x,y
-  real(kind=kind_phys) :: res
+  real(kind=kind_phys) :: res !< result
   res = sqrt(sqrt(pidn0g/(x*y)))
 end function slope_graup_lamdag
 !=================================================================================================================
