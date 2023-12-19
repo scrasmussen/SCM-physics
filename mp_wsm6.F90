@@ -1521,7 +1521,7 @@ subroutine slope_wsm6(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
 !=================================================================================================================
   implicit none
 !--- input arguments:
-  integer:: its,ite,kts,kte
+  integer,intent(in):: its,ite,kts,kte
 
   real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: den,denfac,t
   real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,3):: qrs
@@ -1598,7 +1598,7 @@ subroutine slope_rain(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
 !=================================================================================================================
   implicit none
 !--- input arguments:
-  integer:: its,ite,kts,kte
+  integer,intent(in):: its,ite,kts,kte
 
   real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: qrs,den,denfac,t
 
@@ -1642,7 +1642,7 @@ subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
 !=================================================================================================================
   implicit none
 !--- input arguments:
-  integer:: its,ite,kts,kte
+  integer,intent(in):: its,ite,kts,kte
 
   real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: qrs,den,denfac,t
 
@@ -1692,7 +1692,7 @@ subroutine slope_graup(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,it
 !=================================================================================================================
   implicit none
 !--- input arguments:
-  integer:: its,ite,kts,kte
+  integer,intent(in):: its,ite,kts,kte
 
   real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: qrs,den,denfac,t
 
@@ -2339,10 +2339,9 @@ subroutine refl10cm_wsm6(qv1d,qr1d,qs1d,qg1d,t1d,p1d,dBZ,kts,kte)
                                    .and. (L_qs(k+1).or.L_qg(k+1)) ) then
              k_0 = MAX(k+1, k_0)
              melti=.true.
-             goto 195
+             exit
           endif
        enddo
-  195  continue
 
 !+---+-----------------------------------------------------------------+
 !..Assume Rayleigh approximation at 10 cm wavelength. Rain (all temps)
