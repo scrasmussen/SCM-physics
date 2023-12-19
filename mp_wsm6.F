@@ -401,9 +401,6 @@ subroutine mp_wsm6_run(t,q,qc,qi,qr,qs,qg,den,p,delz,delt,   &
                                                             numdt
   logical,dimension(its:ite)::                             flgcld
   real(kind=kind_phys)::                                           &
-             cpmcal, xlcal, diffus,                                &
-             viscos, xka, venfac, conden, diffac,                  &
-             x, y, z, a, b, c, d, e,                               &
              qdt, holdrr, holdrs, holdrg, supcol, supcolt, pvt,    &
              coeres, supsat, dtcld, xmi, eacrs, satdt,             &
              qimax, diameter, xni0, roqi0,                         &
@@ -424,23 +421,7 @@ subroutine mp_wsm6_run(t,q,qc,qi,qr,qs,qg,den,p,delz,delt,   &
   real(kind=kind_phys):: temp
 
 !-----------------------------------------------------------------------------------------------------------------
-
-! compute internal functions
 !
-  cpmcal(x) = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
-  xlcal(x) = xlv0-xlv1*(x-t0c)
-!----------------------------------------------------------------
-! diffus: diffusion coefficient of the water vapor
-! viscos: kinematic viscosity(m2s-1)
-! Optimizatin : A**B => exp(log(A)*(B))
-!
-  diffus(x,y) = 8.794e-5 * exp(log(x)*(1.81)) / y   ! 8.794e-5*x**1.81/y
-  viscos(x,y) = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y  ! 1.496e-6*x**1.5/(x+120.)/y
-  xka(x,y) = 1.414e3*viscos(x,y)*y
-  diffac(a,b,c,d,e) = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
-  venfac(a,b,c) = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333))) &
-                /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
-  conden(a,b,c,d,e) = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
 !
 !
   idim = ite-its+1
@@ -465,8 +446,8 @@ subroutine mp_wsm6_run(t,q,qc,qi,qr,qs,qg,den,p,delz,delt,   &
 !
   do k = kts, kte
     do i = its, ite
-      cpm(i,k) = cpmcal(q(i,k))
-      xl(i,k) = xlcal(t(i,k))
+      cpm(i,k) = cpmcal(q(i,k),qmin,cpv,cpd)
+      xl(i,k) = xlcal(t(i,k),xlv0,t0c)
     enddo
   enddo
   do k = kts, kte
@@ -683,7 +664,7 @@ subroutine mp_wsm6_run(t,q,qc,qi,qr,qs,qg,den,p,delz,delt,   &
 !       (T>T0: S->R)
 !---------------------------------------------------------------
           xlf = xlf0
-          work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
+          work2(i,k) = venfac(p(i,k),t(i,k),den(i,k),den0)
           if(qs(i,k).gt.0.) then
             coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
             psmlt(i,k) = xka(t(i,k),den(i,k))/xlf*(t0c-t(i,k))*pi/2.         &
@@ -861,9 +842,9 @@ subroutine mp_wsm6_run(t,q,qc,qi,qr,qs,qg,den,p,delz,delt,   &
 !
     do k = kts, kte
       do i = its, ite
-        work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qsat(i,k,1))
-        work1(i,k,2) = diffac(xls,p(i,k),t(i,k),den(i,k),qsat(i,k,2))
-        work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
+        work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qsat(i,k,1),rv)
+        work1(i,k,2) = diffac(xls,p(i,k),t(i,k),den(i,k),qsat(i,k,2),rv)
+        work2(i,k) = venfac(p(i,k),t(i,k),den(i,k),den0)
       enddo
     enddo
 !
@@ -1437,7 +1418,7 @@ subroutine mp_wsm6_run(t,q,qc,qi,qr,qs,qg,den,p,delz,delt,   &
 !
     do k = kts, kte
       do i = its, ite
-        work1(i,k,1) = conden(t(i,k),q(i,k),qsat(i,k,1),xl(i,k),cpm(i,k))
+        work1(i,k,1) = conden(t(i,k),q(i,k),qsat(i,k,1),xl(i,k),cpm(i,k),qmin,rv)
         work2(i,k) = qc(i,k)+work1(i,k,1)
         pcond(i,k) = min(max(work1(i,k,1)/dtcld,zero),max(q(i,k),zero)/dtcld)
         if(qc(i,k).gt.0..and.work1(i,k,1).lt.0.)                          &
@@ -1560,9 +1541,6 @@ subroutine slope_wsm6(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
 
 !size distributions: (x=mixing ratio, y=air density):
 !valid for mixing ratio > 1.e-9 kg/kg.
-  lamdar(x,y)=   sqrt(sqrt(pidn0r/(x*y)))      ! (pidn0r/(x*y))**.25
-  lamdas(x,y,z)= sqrt(sqrt(pidn0s*z/(x*y)))    ! (pidn0s*z/(x*y))**.25
-  lamdag(x,y)=   sqrt(sqrt(pidn0g/(x*y)))      ! (pidn0g/(x*y))**.25
 
   do k = kts, kte
     do i = its, ite
@@ -1577,7 +1555,7 @@ subroutine slope_wsm6(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
         rslope2(i,k,1) = rsloper2max
         rslope3(i,k,1) = rsloper3max
       else
-        rslope(i,k,1) = 1./lamdar(qrs(i,k,1),den(i,k))
+        rslope(i,k,1) = 1./slope_wsm6_lamdar(qrs(i,k,1),den(i,k))
         rslopeb(i,k,1) = rslope(i,k,1)**bvtr
         rslope2(i,k,1) = rslope(i,k,1)*rslope(i,k,1)
         rslope3(i,k,1) = rslope2(i,k,1)*rslope(i,k,1)
@@ -1588,7 +1566,7 @@ subroutine slope_wsm6(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
         rslope2(i,k,2) = rslopes2max
         rslope3(i,k,2) = rslopes3max
       else
-        rslope(i,k,2) = 1./lamdas(qrs(i,k,2),den(i,k),n0sfac(i,k))
+        rslope(i,k,2) = 1./slope_wsm6_lamdas(qrs(i,k,2),den(i,k),n0sfac(i,k))
         rslopeb(i,k,2) = rslope(i,k,2)**bvts
         rslope2(i,k,2) = rslope(i,k,2)*rslope(i,k,2)
         rslope3(i,k,2) = rslope2(i,k,2)*rslope(i,k,2)
@@ -1599,7 +1577,7 @@ subroutine slope_wsm6(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
         rslope2(i,k,3) = rslopeg2max
         rslope3(i,k,3) = rslopeg3max
       else
-        rslope(i,k,3) = 1./lamdag(qrs(i,k,3),den(i,k))
+        rslope(i,k,3) = 1./slope_wsm6_lamdag(qrs(i,k,3),den(i,k))
         rslopeb(i,k,3) = rslope(i,k,3)**bvtg
         rslope2(i,k,3) = rslope(i,k,3)*rslope(i,k,3)
         rslope3(i,k,3) = rslope2(i,k,3)*rslope(i,k,3)
@@ -1632,14 +1610,12 @@ subroutine slope_rain(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
   integer:: i,k
 
   real(kind=kind_phys),parameter:: t0c = 273.15
-  real(kind=kind_phys):: lamdar,x,y
   real(kind=kind_phys),dimension(its:ite,kts:kte):: n0sfac
 
 !-----------------------------------------------------------------------------------------------------------------
 
 !size distributions: (x=mixing ratio, y=air density):
 !valid for mixing ratio > 1.e-9 kg/kg.
-  lamdar(x,y)=   sqrt(sqrt(pidn0r/(x*y)))      ! (pidn0r/(x*y))**.25
 
   do k = kts, kte
     do i = its, ite
@@ -1649,7 +1625,7 @@ subroutine slope_rain(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
         rslope2(i,k) = rsloper2max
         rslope3(i,k) = rsloper3max
       else
-        rslope(i,k) = 1./lamdar(qrs(i,k),den(i,k))
+        rslope(i,k) = 1./slope_rain_lamdar(qrs(i,k),den(i,k))
         rslopeb(i,k) = rslope(i,k)**bvtr
         rslope2(i,k) = rslope(i,k)*rslope(i,k)
         rslope3(i,k) = rslope2(i,k)*rslope(i,k)
@@ -1678,14 +1654,13 @@ subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
   integer:: i,k
 
   real(kind=kind_phys),parameter:: t0c = 273.15
-  real(kind=kind_phys):: lamdas,x,y,z,supcol
+  real(kind=kind_phys):: supcol
   real(kind=kind_phys),dimension(its:ite,kts:kte):: n0sfac
 
 !-----------------------------------------------------------------------------------------------------------------
 
 !size distributions: (x=mixing ratio, y=air density):
 !valid for mixing ratio > 1.e-9 kg/kg.
-  lamdas(x,y,z)= sqrt(sqrt(pidn0s*z/(x*y)))    ! (pidn0s*z/(x*y))**.25
 !
   do k = kts, kte
     do i = its, ite
@@ -1700,7 +1675,7 @@ subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite
         rslope2(i,k) = rslopes2max
         rslope3(i,k) = rslopes3max
       else
-        rslope(i,k) = 1./lamdas(qrs(i,k),den(i,k),n0sfac(i,k))
+        rslope(i,k) = 1./slope_snow_lamdas(qrs(i,k),den(i,k),n0sfac(i,k))
         rslopeb(i,k) = rslope(i,k)**bvts
         rslope2(i,k) = rslope(i,k)*rslope(i,k)
         rslope3(i,k) = rslope2(i,k)*rslope(i,k)
@@ -1727,16 +1702,13 @@ subroutine slope_graup(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,it
 
 !--- local variables and arrays:
   integer:: i,k
-
   real(kind=kind_phys),parameter:: t0c = 273.15
-  real(kind=kind_phys):: lamdag,x,y
   real(kind=kind_phys),dimension(its:ite,kts:kte):: n0sfac
 
 !-----------------------------------------------------------------------------------------------------------------
 
 !size distributions: (x=mixing ratio, y=air density):
 !valid for mixing ratio > 1.e-9 kg/kg.
-  lamdag(x,y)=   sqrt(sqrt(pidn0g/(x*y)))      ! (pidn0g/(x*y))**.25
 
   do k = kts, kte
     do i = its, ite
@@ -1749,7 +1721,7 @@ subroutine slope_graup(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,it
         rslope2(i,k) = rslopeg2max
         rslope3(i,k) = rslopeg3max
       else
-        rslope(i,k) = 1./lamdag(qrs(i,k),den(i,k))
+        rslope(i,k) = 1./slope_graup_lamdag(qrs(i,k),den(i,k))
         rslopeb(i,k) = rslope(i,k)**bvtg
         rslope2(i,k) = rslope(i,k)*rslope(i,k)
         rslope3(i,k) = rslope2(i,k)*rslope(i,k)
@@ -2452,6 +2424,126 @@ subroutine refl10cm_wsm6(qv1d,qr1d,qs1d,qg1d,t1d,p1d,dBZ,kts,kte)
 end subroutine refl10cm_wsm6
 
 
+! pure functions to replace the obsolescent feature "statement function"
+! compute internal functions
+!----------------------------------------------------------------
+! diffus: diffusion coefficient of the water vapor
+! viscos: kinematic viscosity(m2s-1)
+! Optimizatin : A**B => exp(log(A)*(B))
+
+! cpmcal(x) = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
+pure function cpmcal(x,qmin,cpv,cpd) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,qmin,cpv,cpd
+  real(kind=kind_phys) :: res
+  res = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
+end function cpmcal
+
+! xlcal(x) = xlv0-xlv1*(x-t0c)
+pure function xlcal(x,xlv0,t0c) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,xlv0,t0c
+  real(kind=kind_phys) :: res
+  res = xlv0-xlv1*(x-t0c)
+end function xlcal
+
+! diffus(x,y) = 8.794e-5 * exp(log(x)*(1.81)) / y   ! 8.794e-5*x**1.81/y
+pure function diffus(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res
+  res = 8.794e-5 * exp(log(x)*(1.81)) / y
+end function diffus
+
+! viscos(x,y) = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y  ! 1.496e-6*x**1.5/(x+120.)/y
+pure function viscos(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res
+  res = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y
+end function viscos
+
+! xka(x,y) = 1.414e3*viscos(x,y)*y
+pure function xka(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res
+  res = 1.414e3*viscos(x,y)*y
+end function xka
+
+! diffac(a,b,c,d,e) = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
+pure function diffac(a,b,c,d,e,rv) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: a,b,c,d,e,rv
+  real(kind=kind_phys) :: res
+  res = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
+end function diffac
+
+! venfac(a,b,c) = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333))) &
+!              /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
+pure function venfac(a,b,c,den0) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: a,b,c,den0
+  real(kind=kind_phys) :: res
+  res = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333))) &
+                /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
+end function venfac
+
+! conden(a,b,c,d,e) = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
+pure function conden(a,b,c,d,e,qmin,rv) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: a,b,c,d,e,qmin,rv
+  real(kind=kind_phys) :: res
+  res = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
+end function conden
+
+! lamdar(x,y) = sqrt(sqrt(pidn0r/(x*y))) ! (pidn0r/(x*y))**.25
+pure function slope_wsm6_lamdar(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res
+  res = sqrt(sqrt(pidn0r/(x*y)))
+end function slope_wsm6_lamdar
+
+! lamdas(x,y,z) = sqrt(sqrt(pidn0s*z/(x*y))) ! (pidn0s*z/(x*y))**.25
+pure function slope_wsm6_lamdas(x,y,z) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y,z
+  real(kind=kind_phys) :: res
+  res = sqrt(sqrt(pidn0s*z/(x*y)))
+end function slope_wsm6_lamdas
+
+! lamdag(x,y) = sqrt(sqrt(pidn0g/(x*y))) ! (pidn0g/(x*y))**.25
+pure function slope_wsm6_lamdag(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res
+  res =  sqrt(sqrt(pidn0g/(x*y)))
+end function slope_wsm6_lamdag
+
+! lamdar(x,y)=   sqrt(sqrt(pidn0r/(x*y)))      ! (pidn0r/(x*y))**.25
+pure function slope_rain_lamdar(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res
+  res = sqrt(sqrt(pidn0r/(x*y)))
+end function slope_rain_lamdar
+
+! lamdas(x,y,z)= sqrt(sqrt(pidn0s*z/(x*y)))    ! (pidn0s*z/(x*y))**.25
+pure function slope_snow_lamdas(x,y,z) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y,z
+  real(kind=kind_phys) :: res
+  res = sqrt(sqrt(pidn0s*z/(x*y)))
+end function slope_snow_lamdas
+
+! lamdag(x,y)=   sqrt(sqrt(pidn0g/(x*y)))      ! (pidn0g/(x*y))**.25
+pure function slope_graup_lamdag(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res
+  res = sqrt(sqrt(pidn0g/(x*y)))
+end function slope_graup_lamdag
 !=================================================================================================================
 end module mp_wsm6
 !=================================================================================================================
