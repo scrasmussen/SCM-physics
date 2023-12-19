@@ -4,7 +4,16 @@
 module mp_wsm6
   use ccpp_kinds, only: kind_phys
   use module_libmassv, only: vrec, vsqrt
-  use mp_radar, only: radar_init, rayleigh_soak_wetgraupel
+  use mp_radar, only: radar_init, rayleigh_soak_wetgraupel, simpson, &
+       xxds, xdts, xxdg, xdtg, xcre, xcse, xcge, xcrg, xcsg, xcgg, &
+       xam_s, xbm_s, xmu_s, xam_r, xbm_r, xmu_r, xam_g, xbm_g, xmu_g, &
+       xobms, xocms, xobmg, xocmg, k_w, pi5, lamda4, lamda_radar, &
+       nrbins, m_i_0, m_w_0, &
+       mixingrulestring_s, matrixstring_s, inclusionstring_s,   &
+       hoststring_s, hostmatrixstring_s, hostinclusionstring_s, &
+       mixingrulestring_g, matrixstring_g, inclusionstring_g,   &
+       hoststring_g, hostmatrixstring_g, hostinclusionstring_g, &
+       melt_outside_s, melt_outside_g
 
   implicit none
   private
@@ -71,7 +80,7 @@ contains
 !=================================================================================================================
 subroutine mp_wsm6_init(den0,denr,dens,cl,cpv,hail_opt,errmsg,errflg)
 !=================================================================================================================
-
+  implicit none
 ! input arguments:
   integer,intent(in):: hail_opt ! RAS
   real(kind=kind_phys),intent(in):: den0,denr,dens,cl,cpv
@@ -190,7 +199,7 @@ end subroutine mp_wsm6_init
 !=================================================================================================================
 subroutine mp_wsm6_finalize(errmsg,errflg)
 !=================================================================================================================
-
+  implicit none
 !--- output arguments:
   character(len=*),intent(out):: errmsg
   integer,intent(out):: errflg
@@ -248,7 +257,7 @@ subroutine mp_wsm6_run(t,q,qc,qi,qr,qs,qg,den,p,delz,delt,   &
 !             Rutledge, Hobbs (RH84, 1984) J. Atmos. Sci.
 !             Juang and Hong (JH, 2010) Mon. Wea. Rev.
 !
-
+  implicit none
 !input arguments:
   integer,intent(in):: its,ite,kts,kte
 
@@ -1465,8 +1474,9 @@ end subroutine mp_wsm6_run
 function rgmma(x) result(rgmma_val)
 !=================================================================================================================
 !rgmma function:  use infinite product form
+  implicit none
   real(kind=kind_phys),intent(in):: x
-  real(kind=kind_phys) :: rgmma_val(x) ! function result variable
+  real(kind=kind_phys) :: rgmma_val ! function result variable
 
   integer:: i
   real(kind=kind_phys),parameter:: euler=0.577215664901532
@@ -1490,6 +1500,7 @@ end function rgmma
 !=================================================================================================================
 function fpvs(t,ice,rd,rv,cvap,cliq,cice,hvap,hsub,psat,t0c) result(fpvs_val)
 !=================================================================================================================
+  implicit none
   integer,intent(in):: ice
   real(kind=kind_phys) :: fpvs_val ! function result  variable
   real(kind=kind_phys),intent(in):: cice,cliq,cvap,hsub,hvap,psat,rd,rv,t0c
@@ -1518,7 +1529,7 @@ end function fpvs
 !=================================================================================================================
 subroutine slope_wsm6(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite,kts,kte)
 !=================================================================================================================
-
+  implicit none
 !--- input arguments:
   integer:: its,ite,kts,kte
 
@@ -1598,7 +1609,7 @@ end subroutine slope_wsm6
 !=================================================================================================================
 subroutine slope_rain(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite,kts,kte)
 !=================================================================================================================
-
+  implicit none
 !--- input arguments:
   integer:: its,ite,kts,kte
 
@@ -1644,7 +1655,7 @@ end subroutine slope_rain
 !=================================================================================================================
 subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite,kts,kte)
 !=================================================================================================================
-
+  implicit none
 !--- input arguments:
   integer:: its,ite,kts,kte
 
@@ -1695,7 +1706,7 @@ end subroutine slope_snow
 !=================================================================================================================
 subroutine slope_graup(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt,its,ite,kts,kte)
 !=================================================================================================================
-
+  implicit none
 !--- input arguments:
   integer:: its,ite,kts,kte
 
@@ -1764,7 +1775,7 @@ subroutine nislfv_rain_plm(im,km,denl,denfacl,tkl,dzl,wwl,rql,precip,dt,id,iter)
 ! author: hann-ming henry juang <henry.juang@noaa.gov>
 !         implemented by song-you hong
 !
-
+  implicit none
 !--- input arguments:
   integer,intent(in):: im,km,id,iter
 
@@ -2007,7 +2018,7 @@ subroutine nislfv_rain_plm6(im,km,denl,denfacl,tkl,dzl,wwl,rql,rql2,precip1,prec
 ! author: hann-ming henry juang <henry.juang@noaa.gov>
 !         implemented by song-you hong
 !
-
+  implicit none
 !--- input arguments:
   integer,intent(in):: im,km,id,iter
 
