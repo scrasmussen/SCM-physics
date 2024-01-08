@@ -5,7 +5,7 @@
   standard_name = layer_thickness
   long_name = layer thickness
   units = m
-  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -13,7 +13,7 @@
   standard_name = x_wind
   long_name = x wind
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -21,7 +21,7 @@
   standard_name = y_wind
   long_name = y wind
   units =  m s-1
-  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -29,7 +29,7 @@
   standard_name = water_vapor_mixing_ratio
   long_name = water vapor mixing ratio
   units = kg kg-1
-  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -37,7 +37,7 @@
   standard_name = air_pressure
   long_name = air pressure
   units = Pa
-  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -45,7 +45,7 @@
   standard_name = air_temperature
   long_name = air temperature
   units =  K
-  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -53,7 +53,7 @@
   standard_name = lowest_model_layer_thickness
   long_name = lowest model layer thickness
   units = m
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -61,7 +61,7 @@
   standard_name = x_wind_at_the_lowest_model_level
   long_name = x wind at the lowest model level
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -69,7 +69,7 @@
   standard_name = y_wind_at_the_lowest_model_level
   long_name = y wind at the lowest model level
   units =  m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -77,7 +77,7 @@
   standard_name = water_vapor_mixing_ratio_at_the_lowest_model_level
   long_name =  water vapor mixing ratio at the lowest model level
   units =  kg kg-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -85,7 +85,7 @@
   standard_name = air_pressure_at_the_lowest_model_level
   long_name =  air pressure at the lowest model level
   units = Pa
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type =  real | kind = kind_phys
   intent = in
   optional = F
@@ -93,37 +93,37 @@
   standard_name = air_temperature_at_the_lowest_model_level
   long_name = layer mean air temperature at the lowest model level
   units = K
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
 [its]
-  standard_name = horizontal_begin
-  long_name = horizontal begin
+  standard_name = starting_x_index_for_this_MPI_rank
+  long_name = starting index in the x direction for this MPI rank
   units = none
   dimensions = ()
   type = integer
   intent = in
   optional = F
 [ite]
-  standard_name = horizontal_end
-  long_name = horizontal end
+  standard_name = number_of_points_in_x_direction_for_this_MPI_rank
+  long_name = number of points in x direction for this MPI rank
   units = none
   dimensions = ()
   type = integer
   intent = in
   optional = F
 [kts]
-  standard_name = vertical_begin
-  long_name = vertical begin
+  standard_name = vertical_dimension_start
+  long_name = vertical dimension start
   units = none
   dimensions = ()
   type = integer
   intent = in
   optional = F
 [kte]
-  standard_name = vertical_end
-  long_name = vertical end
+  standard_name = vertical_layer_dimension
+  long_name = number of vertical levels
   units = none
   dimensions = ()
   type = integer
@@ -214,7 +214,7 @@
   standard_name = x_wind_at_the_lowest_model_level
   long_name = x wind at the lowest model level
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -222,7 +222,7 @@
   standard_name = y_wind_at_the_lowest_model_level
   long_name = y wind at the lowest model level 
   units =  m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -230,7 +230,7 @@
   standard_name = air_temperature_at_the_lowest_model_level
   long_name = layer mean air temperature at the lowest model level
   units = K
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -238,7 +238,7 @@
   standard_name = water_vapor_mixing_ratio_at_the_lowest_model_level
   long_name =  water vapor mixing ratio at the lowest model level
   units =  kg kg-1
-  dimensions = (horizontal_begin:horizontal_end) 
+  dimensions = (horizontal_loop_extent) 
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -246,7 +246,7 @@
   standard_name = air_pressure_at_the_lowest_model_level
   long_name =  air pressure at the lowest model level
   units = Pa 
-  dimensions = (horizontal_begin:horizontal_end) 
+  dimensions = (horizontal_loop_extent) 
   type =  real | kind = kind_phys
   intent = in
   optional = F
@@ -254,7 +254,7 @@
   standard_name = lowest_model_layer_thickness
   long_name = lowest model layer thickness
   units = m
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -302,7 +302,7 @@
   standard_name = surface_air_pressure
   long_name = surface air pressure
   units = Pa
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -310,7 +310,7 @@
   standard_name = exchange_coefficient_for_heat
   long_name = exchange coefficient for heat 
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -318,7 +318,7 @@
   standard_name = surface_exchange_coefficient_for_heat_at_2m
   long_name = exchange coefficient for heat at 2 meters
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -326,7 +326,7 @@
   standard_name = surface_exchange_coefficient_for_moisture_at_2m
   long_name = exchange coefficient for moisture at 2 meters
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -334,7 +334,7 @@
   standard_name = heat_capacity_at_constant_pressure_for_moist_air
   long_name = heat capacity at constant pressure for moist air
   units = J kg-1 K-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -342,7 +342,7 @@
   standard_name = planetary_boundary_layer_thickness
   long_name = planetary boundary layer thickness
   units = m
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -350,7 +350,7 @@
   standard_name = reciprocal_of_obukhov_length
   long_name = one over obukhov length
   units = m-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -358,7 +358,7 @@
   standard_name = surface_roughness_length
   long_name = surface roughness length
   units = m
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = F
@@ -366,7 +366,7 @@
   standard_name = surface_frictional_velocity
   long_name = surface frictional velocity
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = F
@@ -374,7 +374,7 @@
   standard_name = surface_moisture_availability
   long_name = surface moisture availability
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -382,7 +382,7 @@
   standard_name = surface_stability_parameter
   long_name = monin-obukhov surface stability parameter
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -390,7 +390,7 @@
   standard_name = temperature scale
   long_name = temperature scale
   units = K
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = F
@@ -398,7 +398,7 @@
   standard_name = pbl_regime_categories
   long_name = pbl regime categories
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -406,7 +406,7 @@
   standard_name = Monin_Obukhov_similarity_function_for_momentum
   long_name = Monin-Obukhov similarity function for momentum
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -414,7 +414,7 @@
   standard_name = Monin_Obukhov_similarity_function_for_heat
   long_name = Monin-Obukhov similarity function for heat
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -422,7 +422,7 @@
   standard_name = Monin_Obukhov_similarity_function_for_momentum
   long_name = Monin-Obukhov similarity parameter for momentum 
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -430,7 +430,7 @@
   standard_name = Monin_Obukhov_similarity_function_for_heat
   long_name = Monin-Obukhov similarity parameter for heat 
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -438,7 +438,7 @@
   standard_name = land_sea_mask
   long_name = land sea mask
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -446,7 +446,7 @@
   standard_name = surface_sensible_heat_flux
   long_name = surface sensible heat flux
   units = W m-2
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = F
@@ -454,7 +454,7 @@
   standard_name = surface_latent_heat_flux
   long_name = surface latent heat flux
   units = W m-2
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = F
@@ -462,7 +462,7 @@
   standard_name = surface_skin_temperature
   long_name = surface skin temperature
   units = K
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -470,7 +470,7 @@
   standard_name = x_wind_at_10m
   long_name = x wind at 10m
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -478,7 +478,7 @@
   standard_name = y_wind_at_10m
   long_name = y wind at 10m
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -486,7 +486,7 @@
   standard_name = potential_temperature_at_2m
   long_name = 2 meter potential temperature
   units = K
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -494,7 +494,7 @@
   standard_name = temperature_at_2m
   long_name = 2 meter temperature 
   units = K
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -502,7 +502,7 @@
   standard_name = water_vapor_mixing_ratio_at_2m
   long_name = 2 meter water vapor mixing ratio
   units = kg kg-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out 
   optional = F
@@ -510,7 +510,7 @@
   standard_name = surface_exchange_coefficient_for_heat
   long_name = surface exchange coefficient for heat multiplied by cp and density
   units = W m-2 K-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -518,7 +518,7 @@
   standard_name = surface_exchange_coefficient_for_moisture
   long_name = surface exchange coefficient for moisture multiplied by moisture availability and density
   units = kg m-2 s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -526,7 +526,7 @@
   standard_name = saturation_mixing_ratio_at_lowest_model_level
   long_name = saturation water vapor mixing ratio at lowest model level
   units = kg kg-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -534,7 +534,7 @@
   standard_name = saturation_mixing_ratio_at_surface
   long_name = saturation water vapor mixing ratio at surface
   units = kg kg-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = F
@@ -542,7 +542,7 @@
   standard_name = surface_latent_heat_flux
   long_name = latent heat flux at the surface (pos = up)
   units = W m-2
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -550,7 +550,7 @@
   standard_name = log_of_z_over_roughness_length
   long_name = log of z over z0, where z0 is roughness length 
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -558,7 +558,7 @@
   standard_name = wind_speed_at_lowest_model_layer
   long_name = wind speed at lowest model layer
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -566,7 +566,7 @@
   standard_name = bulk_richardson_number_in_surface_layer
   long_name = bulk richardson number in surface layer
   units = none 
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -582,7 +582,7 @@
   standard_name = cell_size 
   long_name = size of the grid cell 
   units = m
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -678,7 +678,7 @@
   standard_name = water_depth
   long_name = 
   units = m
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -718,7 +718,7 @@
   standard_name = time_averaged_surface_frictional_velocity
   long_name = time averaged surface frictional velocity
   units = m s-1
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = T
@@ -726,7 +726,7 @@
   standard_name = enthalpy_exchange_coefficient_at_10m
   long_name = enthalpy exchange coefficient at 10 meters
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = T
@@ -734,7 +734,7 @@
   standard_name = enthalpy_exchange_coefficient_at_lowest_model_level
   long_name = enthalpy exchange coefficient at the lowest model level
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = T
@@ -742,7 +742,7 @@
   standard_name = momentum_exchange_coefficient_at_10_m
   long_name = momentum exchange coefficient at 10 meters
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = T
@@ -750,21 +750,21 @@
   standard_name = momentum_exchange_coefficient_at_lowest_model_level
   long_name = momentum exchange coefficient at the lowest model level
   units = none
-  dimensions = (horizontal_begin:horizontal_end)
+  dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
   optional = T
 [its]
-  standard_name = horizontal_begin
-  long_name = horizontal begin 
+  standard_name = starting_x_index_for_this_MPI_rank
+  long_name = starting index in the x direction for this MPI rank
   units = none 
   dimensions = ()
   type = integer
   intent = in
   optional = F
 [ite]
-  standard_name = horizontal_end
-  long_name = horizontal end
+  standard_name = number_of_points_in_x_direction_for_this_MPI_rank
+  long_name = number of points in x direction for this MPI rank
   units = none 
   dimensions = ()
   type = integer
