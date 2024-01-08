@@ -17,7 +17,7 @@
  private
  public:: mp_wsm6_run,   &
           mp_wsm6_init,  &
-          mp_wsm6_final, &
+          mp_wsm6_finalize, &
           refl10cm_wsm6
 
  real(kind=kind_phys),parameter,private:: dtcldcr = 120.    ! maximum time step for minor loops
@@ -205,7 +205,7 @@
  end subroutine mp_wsm6_init
 
 !=================================================================================================================
- subroutine mp_wsm6_final(errmsg,errflg)
+ subroutine mp_wsm6_finalize(errmsg,errflg)
 !=================================================================================================================
 
 !--- output arguments:
@@ -214,10 +214,10 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 
- errmsg = 'mp_wsm6_final OK'
+ errmsg = 'mp_wsm6_finalize OK'
  errflg = 0
 
- end subroutine mp_wsm6_final
+ end subroutine mp_wsm6_finalize
 
 !=================================================================================================================
  subroutine mp_wsm6_run(t,q,qc,qi,qr,qs,qg,den,p,delz,delt,   &
