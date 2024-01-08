@@ -14,6 +14,8 @@
  real(kind=kind_phys),parameter:: vconvc= 1.
  real(kind=kind_phys),parameter:: czo   = 0.0185
  real(kind=kind_phys),parameter:: ozo   = 1.59e-5
+ real(kind=kind_phys),parameter :: twofifty = 0.0
+ real(kind=kind_phys),parameter :: neg_twofifty = 0.0
 
  real(kind=kind_phys),dimension(0:1000 ),save:: psim_stab,psim_unstab,psih_stab,psih_unstab
 
@@ -357,9 +359,9 @@
 !-----CALCULATE BULK RICHARDSON NO. OF SURFACE LAYER, ACCORDING TO               
 !     AKB(1976), EQ(12).                                                                            
  do 260 i = its,ite
-    gz1oz0(i)=alog((za(i)+znt(i))/znt(i))   ! log((z+z0)/z0)                                     
-    gz2oz0(i)=alog((2.+znt(i))/znt(i))      ! log((2+z0)/z0)                           
-    gz10oz0(i)=alog((10.+znt(i))/znt(i))    ! log((10+z0)z0)                    
+    gz1oz0(i)=log((za(i)+znt(i))/znt(i))   ! log((z+z0)/z0)
+    gz2oz0(i)=log((2.+znt(i))/znt(i))      ! log((2+z0)/z0)
+    gz10oz0(i)=log((10.+znt(i))/znt(i))    ! log((10+z0)z0)
     if((xland(i)-1.5).ge.0)then                                            
        zl=znt(i)                                                            
     else                                                                     
@@ -422,7 +424,7 @@
 !                                                                           
     if(br(i).gt.0) then
        if(br(i).gt.250.0) then
-          zol(i)=zolri(250.0,za(i),znt(i))
+          zol(i)=zolri(twofifty,za(i),znt(i))
        else
           zol(i)=zolri(br(i),za(i),znt(i))
        endif
@@ -433,7 +435,7 @@
           zol(i)=br(i)*gz1oz0(i)
        else
           if(br(i).lt.-250.0) then
-             zol(i)=zolri(-250.0,za(i),znt(i))
+             zol(i)=zolri(neg_twofifty,za(i),znt(i))
            else
               zol(i)=zolri(br(i),za(i),znt(i))
            endif
@@ -560,11 +562,11 @@
        zl=0.01                                                                
     endif                                                                    
 !
-    psiq=alog(karman*ust(i)*za(i)/xka+za(i)/zl)-pq(i)
-    psiq2=alog(karman*ust(i)*2./xka+2./zl)-pq2(i)
+    psiq=log(karman*ust(i)*za(i)/xka+za(i)/zl)-pq(i)
+    psiq2=log(karman*ust(i)*2./xka+2./zl)-pq2(i)
 
 ! AHW: mods to compute ck, cd
-    psiq10=alog(karman*ust(i)*10./xka+10./zl)-pq10(i)
+    psiq10=log(karman*ust(i)*10./xka+10./zl)-pq10(i)
 
 ! v3.7: using fairall 2003 to compute z0q and z0t over water:
 !       adapted from module_sf_mynn.f
@@ -597,8 +599,8 @@
              psih2(i)=psih_unstable(zol2)-psih_unstable(zol0)
           endif
        endif
-       psit=alog((za(i)+z0t)/z0t)-psih(i)
-       psit2=alog((2.+z0t)/z0t)-psih2(i)
+       psit=log((za(i)+z0t)/z0t)-psih(i)
+       psit2=log((2.+z0t)/z0t)-psih2(i)
 
        zolzz=zol(i)*(za(i)+z0q)/za(i)    ! (z+z0q)/L
        zol10=zol(i)*(10.+z0q)/za(i)   ! (10+z0q)/L
@@ -621,9 +623,9 @@
              endif
           endif
 !
-          psiq=alog((za(i)+z0q)/z0q)-psih(i)
-          psiq2=alog((2.+z0q)/z0q)-psih2(i)
-          psiq10=alog((10.+z0q)/z0q)-psih10(i)
+          psiq=log((za(i)+z0q)/z0q)-psih(i)
+          psiq2=log((2.+z0q)/z0q)-psih2(i)
+          psiq10=log((10.+z0q)/z0q)-psih10(i)
        endif
 
        if(present(isftcflx)) then
@@ -658,10 +660,10 @@
              endif
           endif
 !
-          psiq=alog((za(i)+z0q)/z0q)-psih(i)
+          psiq=log((za(i)+z0q)/z0q)-psih(i)
           psit=psiq
-          psiq2=alog((2.+z0q)/z0q)-psih2(i)
-          psiq10=alog((10.+z0q)/z0q)-psih10(i)
+          psiq2=log((2.+z0q)/z0q)-psih2(i)
+          psiq10=log((10.+z0q)/z0q)-psih10(i)
           psit2=psiq2
        endif
        if(isftcflx.eq.2 .and. (xland(i)-1.5).ge.0.) then
@@ -702,8 +704,8 @@
 !
 !         psit=gz1oz0(i)-psih(i)+restar2
 !         psit2=gz2oz0(i)-psih2(i)+restar2
-          psit=alog((za(i)+z0t)/z0t)-psih(i)
-          psit2=alog((2.+z0t)/z0t)-psih2(i)
+          psit=log((za(i)+z0t)/z0t)-psih(i)
+          psit2=log((2.+z0t)/z0t)-psih2(i)
 !
           gz0ozq=0.40*(7.3*sqrt(sqrt(restar))*sqrt(0.60)-5.)
           z0q=znt(i)/exp(gz0ozq)
@@ -729,9 +731,9 @@
              endif
           endif
 !
-          psiq=alog((za(i)+z0q)/z0q)-psih(i)
-          psiq2=alog((2.+z0q)/z0q)-psih2(i)
-          psiq10=alog((10.+z0q)/z0q)-psih10(i)
+          psiq=log((za(i)+z0q)/z0q)-psih(i)
+          psiq2=log((2.+z0q)/z0q)-psih2(i)
+          psiq10=log((10.+z0q)/z0q)-psih10(i)
 !         psiq=gz1oz0(i)-psih(i)+2.28*sqrt(sqrt(restar))-2.
 !         psiq2=gz2oz0(i)-psih2(i)+2.28*sqrt(sqrt(restar))-2.
 !         psiq10=gz10oz0(i)-psih(i)+2.28*sqrt(sqrt(restar))-2.
@@ -783,8 +785,8 @@
              endif
           endif
 !
-          psiq=alog((za(i)+z0t)/z0t)-psih(i)
-          psiq2=alog((2.+z0t)/z0t)-psih2(i)
+          psiq=log((za(i)+z0t)/z0t)-psih(i)
+          psiq2=log((2.+z0t)/z0t)-psih2(i)
           psit=psiq
           psit2=psiq2
 !
@@ -875,7 +877,7 @@
     endif                                                                    
     flqc(i)=rhox(i)*mavail(i)*ust(i)*karman/denomq(i)
 !   flqc(i)=rhox(i)*mavail(i)*ust(i)*karman/(   &
-!           alog(karman*ust(i)*za(i)/xka+za(i)/zl)-psih(i))
+!           log(karman*ust(i)*za(i)/xka+za(i)/zl)-psih(i))
     dtthx=abs(thx(i)-thgb(i))                                            
     if(dtthx.gt.1.e-5)then                                                   
        flhc(i)=cpm(i)*rhox(i)*ust(i)*mol(i)/(thx(i)-thgb(i))          
@@ -928,15 +930,15 @@
          zl=0.01
       endif
 !v3.1.1
-!     chs(i)=ust(i)*karman/(alog(karman*ust(i)*za(i) &
+!     chs(i)=ust(i)*karman/(log(karman*ust(i)*za(i) &
 !           /xka+za(i)/zl)-psih(i))
       chs(i)=ust(i)*karman/denomq(i)
-!     gz2oz0(i)=alog(2./znt(i))
+!     gz2oz0(i)=log(2./znt(i))
 !     psim2(i)=-10.*gz2oz0(i)
 !     psim2(i)=amax1(psim2(i),-10.)
 !     psih2(i)=psim2(i)
 ! v3.1.1
-!     cqs2(i)=ust(i)*karman/(alog(karman*ust(i)*2.0  &
+!     cqs2(i)=ust(i)*karman/(log(karman*ust(i)*2.0  &
 !            /xka+2.0/zl)-psih2(i))
 !     chs2(i)=ust(i)*karman/(gz2oz0(i)-psih2(i))
       cqs2(i)=ust(i)*karman/denomq2(i)
@@ -1046,7 +1048,7 @@
  real(kind=kind_phys),intent(in):: zolf
  real(kind=kind_phys):: psimc,psimk,x,y,ym
  x=(1.-16.*zolf)**.25
- psimk=2*ALOG(0.5*(1+X))+ALOG(0.5*(1+X*X))-2.*ATAN(X)+2.*ATAN(1.)
+ psimk=2*LOG(0.5*(1+X))+LOG(0.5*(1+X*X))-2.*ATAN(X)+2.*ATAN(1.)
 
  ym=(1.-10.*zolf)**0.33
  psimc=(3./2.)*log((ym**2.+ym+1.)/3.)-sqrt(3.)*ATAN((2.*ym+1)/sqrt(3.))+4.*ATAN(1.)/sqrt(3.)
