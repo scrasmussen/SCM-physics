@@ -2,8 +2,16 @@
  module mp_wsm6
  use ccpp_kind_types,only: kind_phys
  use module_libmassv,only: vrec,vsqrt
-
- use mp_radar
+ use mp_radar, only: radar_init, rayleigh_soak_wetgraupel, simpson, &
+      xxds, xdts, xxdg, xdtg, xcre, xcse, xcge, xcrg, xcsg, xcgg, &
+      xam_s, xbm_s, xmu_s, xam_r, xbm_r, xmu_r, xam_g, xbm_g, xmu_g, &
+      xobms, xocms, xobmg, xocmg, k_w, pi5, lamda4, lamda_radar, &
+      nrbins, m_i_0, m_w_0, &
+      mixingrulestring_s, matrixstring_s, inclusionstring_s,   &
+      hoststring_s, hostmatrixstring_s, hostinclusionstring_s, &
+      mixingrulestring_g, matrixstring_g, inclusionstring_g,   &
+      hoststring_g, hostmatrixstring_g, hostinclusionstring_g, &
+      melt_outside_s, melt_outside_g
 
  implicit none
  private
@@ -61,6 +69,17 @@
     rsloper3max,rslopes3max,rslopeg3max
 
  real(kind=kind_phys),public,save:: pidn0s,pidnc
+
+! named constants for numbers improves f2008 compliance
+ real(kind=kind_phys), parameter :: zero = 0.0
+ real(kind=kind_phys), parameter :: one_e_neg25 = 1.E-25
+ real(kind=kind_phys), parameter :: one_e_neg15 = 1.E-15
+ real(kind=kind_phys), parameter :: one_e_neg10 = 1.E-10
+ real(kind=kind_phys), parameter :: one_e_neg3 = 0.001
+ real(kind=kind_phys), parameter :: one = 1.0
+ real(kind=kind_phys), parameter :: fifty = 50.0
+ real(kind=kind_phys), parameter :: one_e_3 = 1.E3
+ real(kind=kind_phys), parameter :: one_e_6 = 1.E6
 
 
  contains
@@ -412,23 +431,6 @@
   real(kind=kind_phys):: temp
 
 !-----------------------------------------------------------------------------------------------------------------
-
-! compute internal functions
-!
- cpmcal(x) = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
- xlcal(x) = xlv0-xlv1*(x-t0c)
-!----------------------------------------------------------------
-! diffus: diffusion coefficient of the water vapor
-! viscos: kinematic viscosity(m2s-1)
-! Optimizatin : A**B => exp(log(A)*(B))
-!
- diffus(x,y) = 8.794e-5 * exp(log(x)*(1.81)) / y   ! 8.794e-5*x**1.81/y
- viscos(x,y) = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y  ! 1.496e-6*x**1.5/(x+120.)/y
- xka(x,y) = 1.414e3*viscos(x,y)*y
- diffac(a,b,c,d,e) = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
- venfac(a,b,c) = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333))) &
-               /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
- conden(a,b,c,d,e) = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
 !
 !
  idim = ite-its+1
@@ -439,11 +441,11 @@
 !
  do k = kts, kte
    do i = its, ite
-     qc(i,k) = max(qc(i,k),0.0)
-     qr(i,k) = max(qr(i,k),0.0)
-     qi(i,k) = max(qi(i,k),0.0)
-     qs(i,k) = max(qs(i,k),0.0)
-     qg(i,k) = max(qg(i,k),0.0)
+     qc(i,k) = max(qc(i,k),zero)
+     qr(i,k) = max(qr(i,k),zero)
+     qi(i,k) = max(qi(i,k),zero)
+     qs(i,k) = max(qs(i,k),zero)
+     qg(i,k) = max(qg(i,k),zero)
    enddo
  enddo
 !
@@ -598,7 +600,7 @@
      do i = its, ite
        temp = (den(i,k)*max(qi(i,k),qmin))
        temp = sqrt(sqrt(temp*temp*temp))
-       xni(i,k) = min(max(5.38e7*temp,1.e3),1.e6)
+       xni(i,k) = min(max(5.38e7*temp,one_e_3),one_e_6)
      enddo
    enddo
 !
@@ -619,7 +621,7 @@
    do k = kte, kts, -1
      do i = its, ite
        workr(i,k) = work1(i,k,1)
-       qsum(i,k) = max( (qs(i,k)+qg(i,k)), 1.E-15)
+       qsum(i,k) = max( (qs(i,k)+qg(i,k)), one_e_neg15)
        if( qsum(i,k) .gt. 1.e-15 ) then
          worka(i,k) = (work1(i,k,2)*qs(i,k) + work1(i,k,3)*qg(i,k)) &
                     / qsum(i,k)
@@ -638,9 +640,9 @@
                          denqrs2,denqrs3,delqrs2,delqrs3,dtcld,1,1)
    do k = kts, kte
      do i = its, ite
-       qr(i,k) = max(denqrs1(i,k)/den(i,k),0.)
-       qs(i,k) = max(denqrs2(i,k)/den(i,k),0.)
-       qg(i,k) = max(denqrs3(i,k)/den(i,k),0.)
+       qr(i,k) = max(denqrs1(i,k)/den(i,k),zero)
+       qs(i,k) = max(denqrs2(i,k)/den(i,k),zero)
+       qg(i,k) = max(denqrs3(i,k)/den(i,k),zero)
        fall(i,k,1) = denqrs1(i,k)*workr(i,k)/delz(i,k)
        fall(i,k,2) = denqrs2(i,k)*worka(i,k)/delz(i,k)
        fall(i,k,3) = denqrs3(i,k)*worka(i,k)/delz(i,k)
@@ -664,7 +666,7 @@
    do k = kte, kts, -1
      do i = its, ite
        supcol = t0c-t(i,k)
-       n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),1.)
+       n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),one)
        if(t(i,k).gt.t0c) then
 !---------------------------------------------------------------
 ! psmlt: melting of snow [HL A33] [RH83 A25]
@@ -678,7 +680,7 @@
                       *n0sfac(i,k)*(precs1*rslope2(i,k,2)                   &
                       +precs2*work2(i,k)*coeres)/den(i,k)
            psmlt(i,k) = min(max(psmlt(i,k)*dtcld/mstep(i),                  &
-                      -qs(i,k)/mstep(i)),0.)
+                      -qs(i,k)/mstep(i)),zero)
            qs(i,k) = qs(i,k) + psmlt(i,k)
            qr(i,k) = qr(i,k) - psmlt(i,k)
            t(i,k) = t(i,k) + xlf/cpm(i,k)*psmlt(i,k)
@@ -693,7 +695,7 @@
                       *(t0c-t(i,k))*(precg1*rslope2(i,k,3)                  &
                       +precg2*work2(i,k)*coeres)/den(i,k)
            pgmlt(i,k) = min(max(pgmlt(i,k)*dtcld/mstep(i),                  &
-                     -qg(i,k)/mstep(i)),0.)
+                     -qg(i,k)/mstep(i)),zero)
            qg(i,k) = qg(i,k) + pgmlt(i,k)
            qr(i,k) = qr(i,k) - pgmlt(i,k)
            t(i,k) = t(i,k) + xlf/cpm(i,k)*pgmlt(i,k)
@@ -710,7 +712,7 @@
          work1c(i,k) = 0.
        else
          xmi = den(i,k)*qi(i,k)/xni(i,k)
-         diameter  = max(min(dicon * sqrt(xmi),dimax), 1.e-25)
+         diameter  = max(min(dicon * sqrt(xmi),dimax), one_e_neg25)
          work1c(i,k) = 1.49e4*exp(log(diameter)*(1.31))
        endif
      enddo
@@ -727,7 +729,7 @@
                         delqi,dtcld,1,0)
    do k = kts, kte
      do i = its, ite
-       qi(i,k) = max(denqci(i,k)/den(i,k),0.)
+       qi(i,k) = max(denqci(i,k)/den(i,k),zero)
      enddo
    enddo
    do i = its, ite
@@ -800,7 +802,7 @@
        if(supcol.gt.0..and.qc(i,k).gt.qmin) then
 !        pfrzdtc = min(pfrz1*(exp(pfrz2*supcol)-1.)                         &
 !                * den(i,k)/denr/xncr*qc(i,k)**2*dtcld,qc(i,k))
-         supcolt=min(supcol,50.)
+         supcolt=min(supcol,fifty)
          pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-1.)                        &
                  * den(i,k)/denr/xncr*qc(i,k)*qc(i,k)*dtcld,qc(i,k))
          qi(i,k) = qi(i,k) + pfrzdtc
@@ -817,7 +819,7 @@
 !                * rslope(i,k,1)*dtcld,qr(i,k))
          temp = rslope3(i,k,1)
          temp = temp*temp*rslope(i,k,1)
-         supcolt=min(supcol,50.)
+         supcolt=min(supcol,fifty)
          pfrzdtr = min(20.*(pi*pi)*pfrz1*n0r*denr/den(i,k)                  &
                  *(exp(pfrz2*supcolt)-1.)*temp*dtcld,                       &
                    qr(i,k))
@@ -917,7 +919,7 @@
    do k = kts, kte
      do i = its, ite
        supcol = t0c-t(i,k)
-       n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),1.)
+       n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),one)
        supsat = max(q(i,k),qmin)-qsat(i,k,2)
        satdt = supsat/dtcld
        ifsat = 0
@@ -928,7 +930,7 @@
 !               * max(qi(i,k),qmin))**0.75,1.e3),1.e6)
        temp = (den(i,k)*max(qi(i,k),qmin))
        temp = sqrt(sqrt(temp*temp*temp))
-       xni(i,k) = min(max(5.38e7*temp,1.e3),1.e6)
+       xni(i,k) = min(max(5.38e7*temp,one_e_3),one_e_6)
        eacrs = exp(0.07*(-supcol))
 !
        xmi = den(i,k)*qi(i,k)/xni(i,k)
@@ -937,7 +939,7 @@
        vt2r=pvtr*rslopeb(i,k,1)*denfac(i,k)
        vt2s=pvts*rslopeb(i,k,2)*denfac(i,k)
        vt2g=pvtg*rslopeb(i,k,3)*denfac(i,k)
-       qsum(i,k) = max( (qs(i,k)+qg(i,k)), 1.E-15)
+       qsum(i,k) = max( (qs(i,k)+qg(i,k)), one_e_neg15)
        if(qsum(i,k) .gt. 1.e-15) then
          vt2ave=(vt2s*qs(i,k)+vt2g*qg(i,k))/(qsum(i,k))
        else
@@ -953,7 +955,7 @@
                   + diameter**2*rslope(i,k,1)
            praci(i,k) = pi*qi(i,k)*n0r*abs(vt2r-vt2i)*acrfac/4.
 ! reduce collection efficiency (suggested by B. Wilt)
-           praci(i,k) = praci(i,k)*min(max(0.0,qr(i,k)/qi(i,k)),1.)**2
+           praci(i,k) = praci(i,k)*min(max(zero,qr(i,k)/qi(i,k)),one)**2
            praci(i,k) = min(praci(i,k),qi(i,k)/dtcld)
 !-------------------------------------------------------------
 ! piacr: accretion of rain by cloud ice [HL A19] [LFO 26]
@@ -963,7 +965,7 @@
                       * g6pbr*rslope3(i,k,1)*rslope3(i,k,1)                 &
                       * rslopeb(i,k,1)/24./den(i,k)
 ! reduce collection efficiency (suggested by B. Wilt)
-           piacr(i,k) = piacr(i,k)*min(max(0.0,qi(i,k)/qr(i,k)),1.)**2
+           piacr(i,k) = piacr(i,k)*min(max(zero,qi(i,k)/qr(i,k)),one)**2
            piacr(i,k) = min(piacr(i,k),qr(i,k)/dtcld)
          endif
 !-------------------------------------------------------------
@@ -996,7 +998,7 @@
        if(qs(i,k).gt.qcrmin.and.qc(i,k).gt.qmin) then
          psacw(i,k) = min(pacrc*n0sfac(i,k)*rslope3(i,k,2)*rslopeb(i,k,2)   &
 ! reduce collection efficiency (suggested by B. Wilt)
-                    * min(max(0.0,qs(i,k)/qc(i,k)),1.)**2                   &
+                    * min(max(zero,qs(i,k)/qc(i,k)),one)**2                   &
                     * qc(i,k)*denfac(i,k),qc(i,k)/dtcld)
        endif
 !-------------------------------------------------------------
@@ -1006,7 +1008,7 @@
        if(qg(i,k).gt.qcrmin.and.qc(i,k).gt.qmin) then
          pgacw(i,k) = min(pacrg*rslope3(i,k,3)*rslopeb(i,k,3)               &
 ! reduce collection efficiency (suggested by B. Wilt)
-                    * min(max(0.0,qg(i,k)/qc(i,k)),1.)**2                   &
+                    * min(max(zero,qg(i,k)/qc(i,k)),one)**2                   &
                     * qc(i,k)*denfac(i,k),qc(i,k)/dtcld)
        endif
 !-------------------------------------------------------------
@@ -1029,7 +1031,7 @@
            pracs(i,k) = pi**2*n0r*n0s*n0sfac(i,k)*abs(vt2r-vt2ave)          &
                       * (dens/den(i,k))*acrfac
 ! reduce collection efficiency (suggested by B. Wilt)
-           pracs(i,k) = pracs(i,k)*min(max(0.0,qr(i,k)/qs(i,k)),1.)**2
+           pracs(i,k) = pracs(i,k)*min(max(zero,qr(i,k)/qs(i,k)),one)**2
            pracs(i,k) = min(pracs(i,k),qs(i,k)/dtcld)
          endif
 !-------------------------------------------------------------
@@ -1042,7 +1044,7 @@
          psacr(i,k) = pi**2*n0r*n0s*n0sfac(i,k)*abs(vt2ave-vt2r)            &
                     * (denr/den(i,k))*acrfac
 ! reduce collection efficiency (suggested by B. Wilt)
-         psacr(i,k) = psacr(i,k)*min(max(0.0,qs(i,k)/qr(i,k)),1.)**2
+         psacr(i,k) = psacr(i,k)*min(max(zero,qs(i,k)/qr(i,k)),one)**2
          psacr(i,k) = min(psacr(i,k),qr(i,k)/dtcld)
        endif
 !-------------------------------------------------------------
@@ -1056,7 +1058,7 @@
          pgacr(i,k) = pi**2*n0r*n0g*abs(vt2ave-vt2r)*(denr/den(i,k))        &
                     * acrfac
 ! reduce collection efficiency (suggested by B. Wilt)
-         pgacr(i,k) = pgacr(i,k)*min(max(0.0,qg(i,k)/qr(i,k)),1.)**2
+         pgacr(i,k) = pgacr(i,k)*min(max(zero,qg(i,k)/qr(i,k)),one)**2
          pgacr(i,k) = min(pgacr(i,k),qr(i,k)/dtcld)
        endif
 !
@@ -1076,14 +1078,14 @@
 !-------------------------------------------------------------
          if(qs(i,k).gt.0.)                                                  &
            pseml(i,k) = min(max(cliq*supcol*(paacw(i,k)+psacr(i,k))         &
-                      / xlf,-qs(i,k)/dtcld),0.)
+                      / xlf,-qs(i,k)/dtcld),zero)
 !-------------------------------------------------------------
 ! pgeml: enhanced melting of graupel by accretion of water [HL A24] [RH84 A21-A22]
 !        (T>=T0: G->R)
 !-------------------------------------------------------------
          if(qg(i,k).gt.0.)                                                  &
            pgeml(i,k) = min(max(cliq*supcol*(paacw(i,k)+pgacr(i,k))         &
-                      / xlf,-qg(i,k)/dtcld),0.)
+                      / xlf,-qg(i,k)/dtcld),zero)
        endif
        if(supcol.gt.0) then
 !-------------------------------------------------------------
@@ -1145,7 +1147,7 @@
            supice = satdt-prevp(i,k)-pidep(i,k)-psdep(i,k)-pgdep(i,k)
            xni0 = 1.e3*exp(0.1*supcol)
            roqi0 = 4.92e-11*xni0**1.33
-           pigen(i,k) = max(0.,(roqi0/den(i,k)-max(qi(i,k),0.))/dtcld)
+           pigen(i,k) = max(zero,(roqi0/den(i,k)-max(qi(i,k),zero))/dtcld)
            pigen(i,k) = min(min(pigen(i,k),satdt),supice)
          endif
 !
@@ -1155,7 +1157,7 @@
 !-------------------------------------------------------------
          if(qi(i,k).gt.0.) then
            qimax = roqimax/den(i,k)
-           psaut(i,k) = max(0.,(qi(i,k)-qimax)/dtcld)
+           psaut(i,k) = max(zero,(qi(i,k)-qimax)/dtcld)
          endif
 !
 !-------------------------------------------------------------
@@ -1164,7 +1166,7 @@
 !-------------------------------------------------------------
          if(qs(i,k).gt.0.) then
            alpha2 = 1.e-3*exp(0.09*(-supcol))
-           pgaut(i,k) = min(max(0.,alpha2*(qs(i,k)-qs0)),qs(i,k)/dtcld)
+           pgaut(i,k) = min(max(zero,alpha2*(qs(i,k)-qs0)),qs(i,k)/dtcld)
          endif
        endif
 !
@@ -1178,7 +1180,7 @@
            psevp(i,k) = (rh(i,k,1)-1.)*n0sfac(i,k)*(precs1                  &
                       * rslope2(i,k,2)+precs2*work2(i,k)                    &
                       * coeres)/work1(i,k,1)
-           psevp(i,k) = min(max(psevp(i,k),-qs(i,k)/dtcld),0.)
+           psevp(i,k) = min(max(psevp(i,k),-qs(i,k)/dtcld),zero)
          endif
 !-------------------------------------------------------------
 ! pgevp: evaporation of melting graupel [HL A25] [RH84 A19]
@@ -1188,7 +1190,7 @@
            coeres = rslope2(i,k,3)*sqrt(rslope(i,k,3)*rslopeb(i,k,3))
            pgevp(i,k) = (rh(i,k,1)-1.)*(precg1*rslope2(i,k,3)               &
                       + precg2*work2(i,k)*coeres)/work1(i,k,1)
-           pgevp(i,k) = min(max(pgevp(i,k),-qg(i,k)/dtcld),0.)
+           pgevp(i,k) = min(max(pgevp(i,k),-qg(i,k)/dtcld),zero)
          endif
        endif
      enddo
@@ -1294,23 +1296,23 @@
 ! update
          q(i,k) = q(i,k)+work2(i,k)*dtcld
          qc(i,k) = max(qc(i,k)-(praut(i,k)+pracw(i,k)                       &
-                 + paacw(i,k)+paacw(i,k))*dtcld,0.)
+                 + paacw(i,k)+paacw(i,k))*dtcld,zero)
          qr(i,k) = max(qr(i,k)+(praut(i,k)+pracw(i,k)                       &
                  + prevp(i,k)-piacr(i,k)-pgacr(i,k)                         &
-                 - psacr(i,k))*dtcld,0.)
+                 - psacr(i,k))*dtcld,zero)
          qi(i,k) = max(qi(i,k)-(psaut(i,k)+praci(i,k)                       &
                  + psaci(i,k)+pgaci(i,k)-pigen(i,k)-pidep(i,k))             &
-                 * dtcld,0.)
+                 * dtcld,zero)
          qs(i,k) = max(qs(i,k)+(psdep(i,k)+psaut(i,k)+paacw(i,k)            &
                  - pgaut(i,k)+piacr(i,k)*delta3                             &
                  + praci(i,k)*delta3+psaci(i,k)-pgacs(i,k)                  &
                  - pracs(i,k)*(1.-delta2)+psacr(i,k)*delta2)                &
-                 * dtcld,0.)
+                 * dtcld,zero)
          qg(i,k) = max(qg(i,k)+(pgdep(i,k)+pgaut(i,k)                       &
                  + piacr(i,k)*(1.-delta3)                                   &
                  + praci(i,k)*(1.-delta3)+psacr(i,k)*(1.-delta2)            &
                  + pracs(i,k)*(1.-delta2)+pgaci(i,k)+paacw(i,k)             &
-                 + pgacr(i,k)+pgacs(i,k))*dtcld,0.)
+                 + pgacr(i,k)+pgacs(i,k))*dtcld,zero)
          xlf = xls-xl(i,k)
          xlwork2 = -xls*(psdep(i,k)+pgdep(i,k)+pidep(i,k)+pigen(i,k))       &
                    -xl(i,k)*prevp(i,k)-xlf*(piacr(i,k)+paacw(i,k)           &
@@ -1370,14 +1372,14 @@
 ! update
          q(i,k) = q(i,k)+work2(i,k)*dtcld
          qc(i,k) = max(qc(i,k)-(praut(i,k)+pracw(i,k)                       &
-                 + paacw(i,k)+paacw(i,k))*dtcld,0.)
+                 + paacw(i,k)+paacw(i,k))*dtcld,zero)
          qr(i,k) = max(qr(i,k)+(praut(i,k)+pracw(i,k)                       &
                  + prevp(i,k)+paacw(i,k)+paacw(i,k)-pseml(i,k)              &
-               - pgeml(i,k))*dtcld,0.)
+               - pgeml(i,k))*dtcld,zero)
          qs(i,k) = max(qs(i,k)+(psevp(i,k)-pgacs(i,k)                       &
-                 + pseml(i,k))*dtcld,0.)
+                 + pseml(i,k))*dtcld,zero)
          qg(i,k) = max(qg(i,k)+(pgacs(i,k)+pgevp(i,k)                       &
-                 + pgeml(i,k))*dtcld,0.)
+                 + pgeml(i,k))*dtcld,zero)
          xlf = xls-xl(i,k)
          xlwork2 = -xl(i,k)*(prevp(i,k)+psevp(i,k)+pgevp(i,k))              &
                    -xlf*(pseml(i,k)+pgeml(i,k))
@@ -1427,11 +1429,11 @@
      do i = its, ite
        work1(i,k,1) = conden(t(i,k),q(i,k),qsat(i,k,1),xl(i,k),cpm(i,k))
        work2(i,k) = qc(i,k)+work1(i,k,1)
-       pcond(i,k) = min(max(work1(i,k,1)/dtcld,0.),max(q(i,k),0.)/dtcld)
+       pcond(i,k) = min(max(work1(i,k,1)/dtcld,zero),max(q(i,k),zero)/dtcld)
        if(qc(i,k).gt.0..and.work1(i,k,1).lt.0.)                          &
          pcond(i,k) = max(work1(i,k,1),-qc(i,k))/dtcld
          q(i,k) = q(i,k)-pcond(i,k)*dtcld
-         qc(i,k) = max(qc(i,k)+pcond(i,k)*dtcld,0.)
+         qc(i,k) = max(qc(i,k)+pcond(i,k)*dtcld,zero)
          t(i,k) = t(i,k)+pcond(i,k)*xl(i,k)/cpm(i,k)*dtcld
      enddo
    enddo
@@ -1539,16 +1541,13 @@
  integer:: i,k
 
  real(kind=kind_phys),parameter:: t0c = 273.15
- real(kind=kind_phys):: lamdar,lamdas,lamdag,x,y,z,supcol
+ real(kind=kind_phys):: supcol
  real(kind=kind_phys),dimension(its:ite,kts:kte):: n0sfac
 
 !-----------------------------------------------------------------------------------------------------------------
 
 !size distributions: (x=mixing ratio, y=air density):
 !valid for mixing ratio > 1.e-9 kg/kg.
- lamdar(x,y)=   sqrt(sqrt(pidn0r/(x*y)))      ! (pidn0r/(x*y))**.25
- lamdas(x,y,z)= sqrt(sqrt(pidn0s*z/(x*y)))    ! (pidn0s*z/(x*y))**.25
- lamdag(x,y)=   sqrt(sqrt(pidn0g/(x*y)))      ! (pidn0g/(x*y))**.25
 
  do k = kts, kte
    do i = its, ite
@@ -1556,14 +1555,14 @@
 !---------------------------------------------------------------
 ! n0s: Intercept parameter for snow [m-4] [HDC 6]
 !---------------------------------------------------------------
-     n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),1.)
+     n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),one)
      if(qrs(i,k,1).le.qcrmin)then
        rslope(i,k,1) = rslopermax
        rslopeb(i,k,1) = rsloperbmax
        rslope2(i,k,1) = rsloper2max
        rslope3(i,k,1) = rsloper3max
      else
-       rslope(i,k,1) = 1./lamdar(qrs(i,k,1),den(i,k))
+       rslope(i,k,1) = 1./slope_wsm6_lamdar(qrs(i,k,1),den(i,k))
        rslopeb(i,k,1) = rslope(i,k,1)**bvtr
        rslope2(i,k,1) = rslope(i,k,1)*rslope(i,k,1)
        rslope3(i,k,1) = rslope2(i,k,1)*rslope(i,k,1)
@@ -1574,7 +1573,7 @@
        rslope2(i,k,2) = rslopes2max
        rslope3(i,k,2) = rslopes3max
      else
-       rslope(i,k,2) = 1./lamdas(qrs(i,k,2),den(i,k),n0sfac(i,k))
+       rslope(i,k,2) = 1./slope_wsm6_lamdas(qrs(i,k,2),den(i,k),n0sfac(i,k))
        rslopeb(i,k,2) = rslope(i,k,2)**bvts
        rslope2(i,k,2) = rslope(i,k,2)*rslope(i,k,2)
        rslope3(i,k,2) = rslope2(i,k,2)*rslope(i,k,2)
@@ -1585,7 +1584,7 @@
        rslope2(i,k,3) = rslopeg2max
        rslope3(i,k,3) = rslopeg3max
      else
-       rslope(i,k,3) = 1./lamdag(qrs(i,k,3),den(i,k))
+       rslope(i,k,3) = 1./slope_wsm6_lamdag(qrs(i,k,3),den(i,k))
        rslopeb(i,k,3) = rslope(i,k,3)**bvtg
        rslope2(i,k,3) = rslope(i,k,3)*rslope(i,k,3)
        rslope3(i,k,3) = rslope2(i,k,3)*rslope(i,k,3)
@@ -1618,14 +1617,12 @@
  integer:: i,k
 
  real(kind=kind_phys),parameter:: t0c = 273.15
- real(kind=kind_phys):: lamdar,x,y
  real(kind=kind_phys),dimension(its:ite,kts:kte):: n0sfac
 
 !-----------------------------------------------------------------------------------------------------------------
 
 !size distributions: (x=mixing ratio, y=air density):
 !valid for mixing ratio > 1.e-9 kg/kg.
- lamdar(x,y)=   sqrt(sqrt(pidn0r/(x*y)))      ! (pidn0r/(x*y))**.25
 
  do k = kts, kte
    do i = its, ite
@@ -1635,7 +1632,7 @@
        rslope2(i,k) = rsloper2max
        rslope3(i,k) = rsloper3max
      else
-       rslope(i,k) = 1./lamdar(qrs(i,k),den(i,k))
+       rslope(i,k) = 1./slope_rain_lamdar(qrs(i,k),den(i,k))
        rslopeb(i,k) = rslope(i,k)**bvtr
        rslope2(i,k) = rslope(i,k)*rslope(i,k)
        rslope3(i,k) = rslope2(i,k)*rslope(i,k)
@@ -1664,14 +1661,13 @@
  integer:: i,k
 
  real(kind=kind_phys),parameter:: t0c = 273.15
- real(kind=kind_phys):: lamdas,x,y,z,supcol
+ real(kind=kind_phys):: supcol
  real(kind=kind_phys),dimension(its:ite,kts:kte):: n0sfac
 
 !-----------------------------------------------------------------------------------------------------------------
 
 !size distributions: (x=mixing ratio, y=air density):
 !valid for mixing ratio > 1.e-9 kg/kg.
- lamdas(x,y,z)= sqrt(sqrt(pidn0s*z/(x*y)))    ! (pidn0s*z/(x*y))**.25
 !
  do k = kts, kte
    do i = its, ite
@@ -1679,14 +1675,14 @@
 !---------------------------------------------------------------
 ! n0s: Intercept parameter for snow [m-4] [HDC 6]
 !---------------------------------------------------------------
-     n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),1.)
+     n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),one)
      if(qrs(i,k).le.qcrmin)then
        rslope(i,k) = rslopesmax
        rslopeb(i,k) = rslopesbmax
        rslope2(i,k) = rslopes2max
        rslope3(i,k) = rslopes3max
      else
-       rslope(i,k) = 1./lamdas(qrs(i,k),den(i,k),n0sfac(i,k))
+       rslope(i,k) = 1./slope_snow_lamdas(qrs(i,k),den(i,k),n0sfac(i,k))
        rslopeb(i,k) = rslope(i,k)**bvts
        rslope2(i,k) = rslope(i,k)*rslope(i,k)
        rslope3(i,k) = rslope2(i,k)*rslope(i,k)
@@ -1715,14 +1711,12 @@
  integer:: i,k
 
  real(kind=kind_phys),parameter:: t0c = 273.15
- real(kind=kind_phys):: lamdag,x,y
  real(kind=kind_phys),dimension(its:ite,kts:kte):: n0sfac
 
 !-----------------------------------------------------------------------------------------------------------------
 
 !size distributions: (x=mixing ratio, y=air density):
 !valid for mixing ratio > 1.e-9 kg/kg.
- lamdag(x,y)=   sqrt(sqrt(pidn0g/(x*y)))      ! (pidn0g/(x*y))**.25
 
  do k = kts, kte
    do i = its, ite
@@ -1735,7 +1729,7 @@
        rslope2(i,k) = rslopeg2max
        rslope3(i,k) = rslopeg3max
      else
-       rslope(i,k) = 1./lamdag(qrs(i,k),den(i,k))
+       rslope(i,k) = 1./slope_graup_lamdag(qrs(i,k),den(i,k))
        rslopeb(i,k) = rslope(i,k)**bvtg
        rslope2(i,k) = rslope(i,k)*rslope(i,k)
        rslope3(i,k) = rslope2(i,k)*rslope(i,k)
@@ -2131,7 +2125,7 @@
        call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa,1,1,1,km)
        call slope_graup(qr2,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa2,1,1,1,km)
        do k = 1, km
-          tmp(k) = max((qr(k)+qr2(k)), 1.E-15)
+          tmp(k) = max((qr(k)+qr2(k)), one_e_neg15)
           if( tmp(k) .gt. 1.e-15 ) then
              wa(k) = (wa(k)*qr(k) + wa2(k)*qr2(k))/tmp(k)
           else
@@ -2310,8 +2304,8 @@
 !+---+-----------------------------------------------------------------+
  do k = kts, kte
     temp(k) = t1d(k)
-    temp_c = min(-0.001, temp(k)-273.15)
-    qv(k) = max(1.e-10, qv1d(k))
+    temp_c = min(-one_e_neg3, temp(k)-273.15)
+    qv(k) = max(one_e_neg10, qv1d(k))
     pres(k) = p1d(k)
     rho(k) = 0.622*pres(k)/(R*temp(k)*(qv(k)+0.622))
 
@@ -2443,6 +2437,126 @@
 
  end subroutine refl10cm_wsm6
 
+! pure functions to replace the obsolescent feature "statement function"
+! compute internal functions
+!----------------------------------------------------------------
+! diffus: diffusion coefficient of the water vapor
+! viscos: kinematic viscosity(m2s-1)
+! Optimizatin : A**B => exp(log(A)*(B))
+
+! cpmcal(x) = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
+pure function cpmcal(x,qmin,cpv,cpd) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,qmin,cpv,cpd
+  real(kind=kind_phys) :: res !< result
+  res = cpd*(1.-max(x,qmin))+max(x,qmin)*cpv
+end function cpmcal
+
+! xlcal(x) = xlv0-xlv1*(x-t0c)
+pure function xlcal(x,xlv0,t0c) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,xlv0,t0c
+  real(kind=kind_phys) :: res !< result
+  res = xlv0-xlv1*(x-t0c)
+end function xlcal
+
+! diffus(x,y) = 8.794e-5 * exp(log(x)*(1.81)) / y   ! 8.794e-5*x**1.81/y
+pure function diffus(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res !< result
+  res = 8.794e-5 * exp(log(x)*(1.81)) / y
+end function diffus
+
+! viscos(x,y) = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y  ! 1.496e-6*x**1.5/(x+120.)/y
+pure function viscos(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res !< result
+  res = 1.496e-6 * (x*sqrt(x)) /(x+120.)/y
+end function viscos
+
+! xka(x,y) = 1.414e3*viscos(x,y)*y
+pure function xka(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res !< result
+  res = 1.414e3*viscos(x,y)*y
+end function xka
+
+! diffac(a,b,c,d,e) = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
+pure function diffac(a,b,c,d,e,rv) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: a,b,c,d,e,rv
+  real(kind=kind_phys) :: res !< result
+  res = d*a*a/(xka(c,d)*rv*c*c)+1./(e*diffus(c,b))
+end function diffac
+
+! venfac(a,b,c) = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333))) &
+!              /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
+pure function venfac(a,b,c,den0) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: a,b,c,den0
+  real(kind=kind_phys) :: res !< result
+  res = exp(log((viscos(b,c)/diffus(b,a)))*((.3333333))) &
+                /sqrt(viscos(b,c))*sqrt(sqrt(den0/c))
+end function venfac
+
+! conden(a,b,c,d,e) = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
+pure function conden(a,b,c,d,e,qmin,rv) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: a,b,c,d,e,qmin,rv
+  real(kind=kind_phys) :: res !< result
+  res = (max(b,qmin)-c)/(1.+d*d/(rv*e)*c/(a*a))
+end function conden
+
+! lamdar(x,y) = sqrt(sqrt(pidn0r/(x*y))) ! (pidn0r/(x*y))**.25
+pure function slope_wsm6_lamdar(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res !< result
+  res = sqrt(sqrt(pidn0r/(x*y)))
+end function slope_wsm6_lamdar
+
+! lamdas(x,y,z) = sqrt(sqrt(pidn0s*z/(x*y))) ! (pidn0s*z/(x*y))**.25
+pure function slope_wsm6_lamdas(x,y,z) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y,z
+  real(kind=kind_phys) :: res !< result
+  res = sqrt(sqrt(pidn0s*z/(x*y)))
+end function slope_wsm6_lamdas
+
+! lamdag(x,y) = sqrt(sqrt(pidn0g/(x*y))) ! (pidn0g/(x*y))**.25
+pure function slope_wsm6_lamdag(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res !< result
+  res =  sqrt(sqrt(pidn0g/(x*y)))
+end function slope_wsm6_lamdag
+
+! lamdar(x,y)=   sqrt(sqrt(pidn0r/(x*y)))      ! (pidn0r/(x*y))**.25
+pure function slope_rain_lamdar(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res !< result
+  res = sqrt(sqrt(pidn0r/(x*y)))
+end function slope_rain_lamdar
+
+! lamdas(x,y,z)= sqrt(sqrt(pidn0s*z/(x*y)))    ! (pidn0s*z/(x*y))**.25
+pure function slope_snow_lamdas(x,y,z) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y,z
+  real(kind=kind_phys) :: res !< result
+  res = sqrt(sqrt(pidn0s*z/(x*y)))
+end function slope_snow_lamdas
+
+! lamdag(x,y)=   sqrt(sqrt(pidn0g/(x*y)))      ! (pidn0g/(x*y))**.25
+pure function slope_graup_lamdag(x,y) result(res)
+  implicit none
+  real(kind=kind_phys), intent(in) :: x,y
+  real(kind=kind_phys) :: res !< result
+  res = sqrt(sqrt(pidn0g/(x*y)))
+end function slope_graup_lamdag
 
 !=================================================================================================================
  end module mp_wsm6
