@@ -400,8 +400,6 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
                                                            numdt
  logical,dimension(its:ite)::                             flgcld
  real(kind=kind_phys)::                                           &
-            cpmcal, xlcal, diffus,                                &
-            viscos, xka, venfac, conden, diffac,                  &
             x, y, z, a, b, c, d, e,                               &
             qdt, holdrr, holdrs, holdrg, supcol, supcolt, pvt,    &
             coeres, supsat, dtcld, xmi, eacrs, satdt,             &
@@ -447,8 +445,8 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
 !
  do k = kts, kte
    do i = its, ite
-     cpm(i,k) = cpmcal(q(i,k))
-     xl(i,k) = xlcal(t(i,k))
+     cpm(i,k) = cpmcal(q(i,k),qmin,cpv,cpd)
+     xl(i,k) = xlcal(t(i,k),xlv0,t0c)
    enddo
  enddo
  do k = kts, kte
@@ -665,7 +663,7 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
 !       (T>T0: S->R)
 !---------------------------------------------------------------
          xlf = xlf0
-         work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
+         work2(i,k) = venfac(p(i,k),t(i,k),den(i,k),den0)
          if(qs(i,k).gt.0.) then
            coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
            psmlt(i,k) = xka(t(i,k),den(i,k))/xlf*(t0c-t(i,k))*pi/2.         &
@@ -843,9 +841,9 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
 !
    do k = kts, kte
      do i = its, ite
-       work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qsat(i,k,1))
-       work1(i,k,2) = diffac(xls,p(i,k),t(i,k),den(i,k),qsat(i,k,2))
-       work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
+       work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qsat(i,k,1),rv)
+       work1(i,k,2) = diffac(xls,p(i,k),t(i,k),den(i,k),qsat(i,k,2),rv)
+       work2(i,k) = venfac(p(i,k),t(i,k),den(i,k),den0)
      enddo
    enddo
 !
@@ -1419,7 +1417,7 @@ real(kind=kind_phys),intent(inout),dimension(its:ite),optional::  &
 !
    do k = kts, kte
      do i = its, ite
-       work1(i,k,1) = conden(t(i,k),q(i,k),qsat(i,k,1),xl(i,k),cpm(i,k))
+       work1(i,k,1) = conden(t(i,k),q(i,k),qsat(i,k,1),xl(i,k),cpm(i,k),qmin,rv)
        work2(i,k) = qc(i,k)+work1(i,k,1)
        pcond(i,k) = min(max(work1(i,k,1)/dtcld,zero),max(q(i,k),zero)/dtcld)
        if(qc(i,k).gt.0..and.work1(i,k,1).lt.0.)                          &
