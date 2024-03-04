@@ -1,14 +1,12 @@
 !=================================================================================================================
  module sf_sfclayrev
- use ccpp_kinds,only: kind_phys
+ use machine,only: kind_phys
 
  implicit none
  private
  public:: sf_sfclayrev_run,           &
           sf_sfclayrev_init,          &
-          sf_sfclayrev_final,         &
-          sf_sfclayrev_timestep_init, &
-          sf_sfclayrev_timestep_final
+          sf_sfclayrev_finalize
 
 
  real(kind=kind_phys),parameter:: vconvc= 1.
@@ -20,59 +18,9 @@
 
  contains
 
-
-!=================================================================================================================
- subroutine sf_sfclayrev_timestep_init(dz2d,u2d,v2d,qv2d,p2d,t2d,dz1d,u1d,v1d,qv1d,p1d,t1d, &
-                                       its,ite,kts,kte,errmsg,errflg)
-!=================================================================================================================
-
-!--- input arguments:
- integer,intent(in):: its,ite,kts,kte
-
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: &
-    dz2d,u2d,v2d,qv2d,p2d,t2d
-
-!--- output arguments:
- character(len=*),intent(out):: errmsg
- integer,intent(out):: errflg
-
- real(kind=kind_phys),intent(out),dimension(its:ite):: &
-    dz1d,u1d,v1d,qv1d,p1d,t1d
-
-!--- local variables:
- integer:: i
-
-!-----------------------------------------------------------------------------------------------------------------
-
- do i = its,ite
-    dz1d(i) = dz2d(i,kts)
-    u1d(i)  = u2d(i,kts)
-    v1d(i)  = v2d(i,kts)
-    qv1d(i) = qv2d(i,kts)
-    p1d(i)  = p2d(i,kts)
-    t1d(i)  = t2d(i,kts)
- enddo
-
- errmsg = 'sf_sfclayrev_timestep_init OK'
- errflg = 0
-
- end subroutine sf_sfclayrev_timestep_init
-
-!=================================================================================================================
- subroutine sf_sfclayrev_timestep_final(errmsg,errflg)
-!=================================================================================================================
-
-!--- output arguments:
- character(len=*),intent(out):: errmsg
- integer,intent(out):: errflg
-
-!-----------------------------------------------------------------------------------------------------------------
-
- errmsg = 'sf_sfclayrev_timestep_final OK'
- errflg = 0
-
- end subroutine sf_sfclayrev_timestep_final
-
+!> \section arg_table_sf_sfclayrev_run
+!! \htmlinclude sf_sfclayrev_init.html
+!!
 !=================================================================================================================
  subroutine sf_sfclayrev_init(errmsg,errflg)
 !=================================================================================================================
@@ -105,7 +53,7 @@
  end subroutine sf_sfclayrev_init
 
 !=================================================================================================================
- subroutine sf_sfclayrev_final(errmsg,errflg)
+ subroutine sf_sfclayrev_finalize(errmsg,errflg)
 !=================================================================================================================
 
 !--- output arguments:
@@ -114,16 +62,16 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 
- errmsg = 'sf_sfclayrev_final OK'
+ errmsg = 'sf_sfclayrev_finalize OK'
  errflg = 0
 
- end subroutine sf_sfclayrev_final
+ end subroutine sf_sfclayrev_finalize
 
 !=================================================================================================================
  subroutine sf_sfclayrev_run(ux,vx,t1d,qv1d,p1d,dz8w1d,                &
                              cp,g,rovcp,r,xlv,psfcpa,chs,chs2,cqs2,    &
                              cpm,pblh,rmol,znt,ust,mavail,zol,mol,     &
-                             regime,psim,psih,fm,fh,                   &
+                             regime,psim,psim10,psih,psih2,fm,fh,      &
                              xland,hfx,qfx,tsk,                        &
                              u10,v10,th2,t2,q2,flhc,flqc,qgh,          &
                              qsfc,lh,gz1oz0,wspd,br,isfflx,dx,         &
@@ -135,20 +83,21 @@
                              its,ite,errmsg,errflg                     &
                             )
 !=================================================================================================================
+   implicit none
 
 !--- input arguments:
  integer,intent(in):: its,ite
 
- integer,intent(in):: isfflx
- integer,intent(in):: shalwater_z0 
+ logical,intent(in):: isfflx
+ logical,intent(in):: shalwater_z0 
  integer,intent(in),optional:: isftcflx, iz0tlnd
- integer,intent(in),optional:: scm_force_flux
+ logical,intent(in),optional:: scm_force_flux
 
  real(kind=kind_phys),intent(in):: svp1,svp2,svp3,svpt0
- real(kind=kind_phys),intent(in):: ep1,ep2,karman,eomeg,stbolt
- real(kind=kind_phys),intent(in):: P1000mb
+ real(kind=kind_phys),intent(in):: ep1,ep2,karman,eomeg,stbolt !WL2023: eomeg, stbolt not used
+ real(kind=kind_phys),intent(in):: p1000mb
  real(kind=kind_phys),intent(in):: cp,g,rovcp,r,xlv
- real(kind=kind_phys),intent(in):: shalwater_depth 
+ real(kind=kind_phys),intent(in):: shalwater_depth !WL2023: not used 
 
  real(kind=kind_phys),intent(in),dimension(its:ite):: &
     mavail,     &
@@ -197,7 +146,9 @@
     wspd,       &
     br,         &
     psim,       &
+    psim10,     &
     psih,       &
+    psih2,      &
     fm,         &
     fh,         &
     znt,        &
@@ -235,10 +186,10 @@
     zqklp1,     &
     thx,        &
     qx,         &
-    psih2,      &
-    psim2,      &
+    !psih2,      & ! move to inout to work with sfc_diag
+    psim2,      &  
     psih10,     &
-    psim10,     &
+    !psim10,     & ! move to inout to work with sfc_idag
     denomq,     &
     denomq2,    &
     denomt2,    &
@@ -320,7 +271,7 @@
     thvx(i)=thx(i)*tvcon                                               
     scr4(i)=scr3(i)*tvcon                                              
  50 continue                                                                 
-!                                                                                
+!
  do 60 i=its,ite
     e1=svp1*exp(svp2*(tgdsa(i)-svpt0)/(tgdsa(i)-svp3))                       
     !for land points qsfc can come from previous time step
@@ -333,7 +284,7 @@
     cpm(i)=cp*(1.+0.8*qx(i))                                   
  60 continue                                                                   
  80 continue
-                                                                                 
+
 !-----COMPUTE THE HEIGHT OF FULL- AND HALF-SIGMA LEVELS ABOVE GROUND             
 !     LEVEL, AND THE LAYER THICKNESSES.                                          
                                                                                  
@@ -823,7 +774,7 @@
                                                                                   
 !-----COMPUTE THE SURFACE SENSIBLE AND LATENT HEAT FLUXES:                       
  if(present(scm_force_flux) ) then
-    if(scm_force_flux.eq.1) goto 350
+    if(scm_force_flux) goto 350
     endif
     do i = its,ite
        qfx(i)=0.                                                              
@@ -831,7 +782,7 @@
     enddo
  350 continue                                                                   
 
- if(isfflx.eq.0) goto 410                                                
+ if(.not. isfflx) goto 410                                                
                                                                                  
 !-----OVER WATER, ALTER ROUGHNESS LENGTH (ZNT) ACCORDING TO WIND (UST).          
  do 360 i = its,ite
@@ -839,7 +790,7 @@
 !      znt(i)=czo*ust(i)*ust(i)/g+ozo                                   
        ! PSH - formulation for depth-dependent roughness from
        ! ... Jimenez and Dudhia, 2018
-       if(shalwater_z0 .eq. 1) then
+       if(shalwater_z0) then
           znt(i) = depth_dependent_z0(water_depth(i),znt(i),ust(i))
        else
           !Since V3.7 (ref: EC Physics document for Cy36r1)
@@ -892,7 +843,7 @@
 !IF(IDRY.EQ.1)GOTO 390                                                
 !                                                                                
  if(present(scm_force_flux)) then
-    if(scm_force_flux.eq.1) goto 405
+    if(scm_force_flux) goto 405
     endif
 
     do 370 i = its,ite
@@ -900,7 +851,7 @@
        qfx(i)=amax1(qfx(i),0.)                                            
        lh(i)=xlv*qfx(i)
     370 continue                                                                 
-                                                                                
+
 !-----COMPUTE SURFACE HEAT FLUX:                                                 
 !                                                                                
     390 continue                                                                 
@@ -942,7 +893,7 @@
       cqs2(i)=ust(i)*karman/denomq2(i)
          chs2(i)=ust(i)*karman/denomt2(i)
    enddo
-                                                                        
+
    410 continue                                                                   
 
 !jdf
@@ -963,10 +914,7 @@
 !=================================================================================================================
  real(kind=kind_phys) function zolri(ri,z,z0)
  real(kind=kind_phys),intent(in):: ri,z,z0
-
- integer:: iter
  real(kind=kind_phys):: fx1,fx2,x1,x2
-
 
  if(ri.lt.0.)then
     x1=-5.
@@ -978,9 +926,7 @@
 
  fx1=zolri2(x1,ri,z,z0)
  fx2=zolri2(x2,ri,z,z0)
- iter = 0
  do while (abs(x1 - x2) > 0.01)
- if (iter .eq. 10) return
 !check added for potential divide by zero (2019/11)
     if(fx1.eq.fx2)return
     if(abs(fx2).lt.abs(fx1))then
@@ -992,7 +938,6 @@
        fx2=zolri2(x2,ri,z,z0)
        zolri=x2
     endif
-    iter = iter + 1
  enddo
 
  return
