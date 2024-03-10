@@ -1,116 +1,11 @@
-NOTES:
-[pap] : mean layer hydrostatic pressure.
-[paph]: hydrostatic air pressure at model layer interfaces.
-[pqvf]: dynamic tendency plus PBL tendency.
-[ptf] : dynamic tendency plus PBL tendency plus radiative tendencies.
-[pqv] : water vapor mixing ratio and not specific humidity.
-
 [ccpp-table-properties]
   name = cu_ntiedtke
   type = scheme
-  dependencies = ../ccpp_kind_types.F
+  dependencies = ../mmm_kinds.F90
+  # dependencies = ../ccpp_kind_types.F90
 
 ########################################################################
-[ccpp-arg-table]
-  name = cu_ntietdke_init
-  type = scheme
-[con_cp]
-  standard_name = specific_heat_of_dry_air_at_constant_pressure
-  long_name = specific heat of dry air at constant pressure
-  units = J kg-1 K-1
-  dimensions = ()
-  type = real | kind = kind_phys
-  intent = in
-  optional = F
-[con_rd]
-  standard_name = gas_constant_dry_air
-  long_name = gas constant dry air
-  units = J kg-1 K-1
-  dimensions = ()
-  type = real | kind = kind_phys
-  intent = in
-  optional = F
-[con_rv]
-  standard_name = gas_constant_water_vapor
-  long_name = gas constant water vapor
-  units = J kg-1 K-1 
-  dimensions = ()
-  type = real | kind = kind_phys
-  intent = in
-  optional = F
-[con_xlv]
-  standard_name = latent_heat_of_vaporization_of_water_at_0C
-  long_name = latent heat of vaporization of water at 0C
-  units = J kg-1 
-  dimensions = ()
-  type = real | kind = kind_phys
-  intent = in
-  optional = F
-[con_xls]
-  standard_name = latent_heat_of_sublimation_of_water_at_0C
-  long_name = latent heat of sublimation of water at 0C 
-  units = J kg-1 
-  dimensions = ()
-  type = real | kind = kind_phys
-  intent = in
-  optional = F
-[con_xlf]
-  standard_name = latent_heat_of_fusion_of_water_at_0C
-  long_name = latent heat of fusion of water at 0C
-  units = J kg-1
-  dimensions = ()
-  type = real | kind = kind_phys
-  intent = in
-  optional = F
-[con_grav]
-  standard_name = gravitational_acceleration
-  long_name = gravitational acceleration
-  units = m s-2
-  dimensions = ()
-  type = real | kind = kind_phys
-  intent = in
-  optional = F
-[errmsg]
-  standard_name = ccpp_error_message
-  long_name = error message for error handling in CCPP
-  units = none
-  dimensions = ()
-  type = character
-  kind = len=*
-  intent = out
-  optional = F
-[errflg]
-  standard_name = ccpp_error_code
-  long_name = error code for error handling in CCPP
-  units = 1
-  dimensions = ()
-  type = integer
-  intent = out
-  optional = F
 
-########################################################################
-[ccpp-arg-table]
-  name = cu_ntietdke_finalize
-  type = scheme
-[errmsg]
-  standard_name = ccpp_error_message
-  long_name = error message for error handling in CCPP
-  units = none
-  dimensions = ()
-  type = character
-  kind = len=*
-  intent = out
-  optional = F
-[errflg]
-  standard_name = ccpp_error_code
-  long_name = error code for error handling in CCPP
-  units = 1
-  dimensions = ()
-  type = integer
-  intent = out
-  optional = F
-
-########################################################################
 [ccpp-arg-table]
   name = cu_ntiedtke_run
   type = scheme
@@ -122,7 +17,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = inout
-  optional = F
 [pv]
   standard_name = y_wind
   long_name = y component of layer wind
@@ -131,7 +25,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = inout
-  optional = F
 [pt]
   standard_name = air_temperature
   long_name = layer mean air temperature
@@ -140,7 +33,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = inout
-  optional = F
 [pqv]
   standard_name = water_vapor_mixing_ratio
   long_name = water vapor mixing ratio
@@ -149,7 +41,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = inout
-  optional = F
 [pqc]
   standard_name = cloud_condensed_water_mixing_ratio
   long_name = cloud condensed water mixing ratio
@@ -158,7 +49,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = inout
-  optional = F
 [pqi]
   standard_name = ice_water_mixing_ratio
   long_name = ice water mixing ratio
@@ -167,7 +57,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = inout
-  optional = F
 [pqvf]
   standard_name = tendendy_of_water_vapor_mixing_ratio
   long_name = moisture tendency due to dynamics only
@@ -191,17 +80,15 @@ NOTES:
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real
   kind = kind_phys
-  intent = in 
-  optional = F
+  intent = in
 [pzz]
   standard_name = geopotential_at_interface
   long_name = geopotential at model layer interfaces
   units = m2 s-2
   dimensions = (horizontal_loop_extent,vertical_interface_dimension)
   type = real
-  kind = kind_phys 
+  kind = kind_phys
   intent = in
-  optional = F
 [pomg]
   standard_name = lagrangian_tendency_of_air_pressure
   long_name = layer mean vertical velocity
@@ -210,7 +97,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [pap]
   standard_name = air_pressure
   long_name = mean layer pressure
@@ -219,7 +105,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [paph]
   standard_name = air_pressure_at_interface
   long_name = air pressure at model layer interfaces
@@ -228,7 +113,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [evap]
   standard_name = kinematic_surface_upward_latent_heat_flux
   long_name = kinematic surface upward latent heat flux
@@ -237,7 +121,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [hfx]
   standard_name = kinematic_surface_upward_sensible_heat_flux
   long_name = kinematic surface upward sensible heat flux
@@ -246,7 +129,6 @@ NOTES:
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [zprecc]
   standard_name = lwe_thickness_of_deep_convective_precipitation_amount
   long_name = deep convective rainfall amount on physics timestep
@@ -259,18 +141,16 @@ NOTES:
   standard_name = sea_land_ice_mask
   long_name = landmask: sea/land=0/1
   units = none
-  dimensions = (horizontal_dimension)
+  dimensions = (horizontal_loop_extent)
   type = integer
   intent = in
-  optional = F
 [lq]
-  standard_name = horizontal_dimension
+  standard_name = horizontal_loop_extent
   long_name = size of horizontal dimension
   units = count
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [km]
   standard_name = vertical_layer_dimension
   long_name = inumber of vertical layers
@@ -278,7 +158,6 @@ NOTES:
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [km1]
   standard_name = vertical_interface_dimension
   long_name = number of vertical interfaces
@@ -286,7 +165,6 @@ NOTES:
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [dt]
   standard_name = timestep_for_physics
   long_name = time step for physics
@@ -295,15 +173,13 @@ NOTES:
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [dx]
   standard_name = grid_distance
   long_name = grid distance
-  units = m  
+  units = m
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [errmsg]
   standard_name = ccpp_error_message
   long_name = error message for error handling in CCPP
@@ -312,7 +188,6 @@ NOTES:
   type = character
   kind = len=*
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_code
   long_name = error code for error handling in CCPP
@@ -320,7 +195,96 @@ NOTES:
   dimensions = ()
   type = integer
   intent = out
-  optional = F
 
 ########################################################################
 
+[ccpp-arg-table]
+  name = cu_ntiedtke_init
+  type = scheme
+[con_cp]
+  standard_name = specific_heat_of_dry_air_at_constant_pressure
+  long_name = specific heat of dry air at constant pressure
+  units = J kg-1 K-1
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+[con_rd]
+  standard_name = gas_constant_dry_air
+  long_name = gas constant dry air
+  units = J kg-1 K-1
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+[con_rv]
+  standard_name = gas_constant_water_vapor
+  long_name = gas constant water vapor
+  units = J kg-1 K-1
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+[con_xlv]
+  standard_name = latent_heat_of_vaporization_of_water_at_0C
+  long_name = latent heat of vaporization of water at 0C
+  units = J kg-1
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+[con_xls]
+  standard_name = latent_heat_of_sublimation_of_water_at_0C
+  long_name = latent heat of sublimation of water at 0C
+  units = J kg-1
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+[con_xlf]
+  standard_name = latent_heat_of_fusion_of_water_at_0C
+  long_name = latent heat of fusion of water at 0C
+  units = J kg-1
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+[con_grav]
+  standard_name = gravitational_acceleration
+  long_name = gravitational acceleration
+  units = m s-2
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+[errflg]
+  standard_name = ccpp_error_code
+  long_name = error code for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = integer
+  intent = out
+
+########################################################################
+
+[ccpp-arg-table]
+  name = cu_ntiedtke_finalize
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+[errflg]
+  standard_name = ccpp_error_code
+  long_name = error code for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = integer
+  intent = out
+
+########################################################################
