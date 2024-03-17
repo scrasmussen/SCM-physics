@@ -140,7 +140,7 @@
 [lndj]
   standard_name = sea_land_ice_mask
   long_name = landmask: sea/land=0/1
-  units = none
+  units = flag
   dimensions = (horizontal_loop_extent)
   type = integer
   intent = in
