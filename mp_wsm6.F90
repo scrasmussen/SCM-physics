@@ -86,8 +86,9 @@
 
 
 !=================================================================================================================
-!>\section arg_table_mp_wsm6_init
-!!\html\include mp_wsm6_init.html
+!> Initilizes radar and variables
+!! \section arg_table_mp_wsm6_init Argument Table
+!! \htmlinclude mp_wsm6_init.html
 !!
  subroutine mp_wsm6_init(den0,denr,dens,cl,cpv,hail_opt,errmsg,errflg)
 !=================================================================================================================
@@ -208,8 +209,8 @@
  end subroutine mp_wsm6_init
 
 !=================================================================================================================
-!>\section arg_table_mp_wsm6_finalize
-!!\html\include mp_wsm6_finalize.html
+!> \section arg_table_mp_wsm6_finalize
+!! \htmlinclude mp_wsm6_finalize.html
 !!
  subroutine mp_wsm6_finalize(errmsg,errflg)
 !=================================================================================================================
@@ -226,8 +227,8 @@
  end subroutine mp_wsm6_finalize
 
 !=================================================================================================================
-!>\section arg_table_mp_wsm6_run
-!!\html\include mp_wsm6_run.html
+!> \section arg_table_mp_wsm6_run
+!! \htmlinclude mp_wsm6_run.html
 !!
  subroutine mp_wsm6_run(t,q,qc,qi,qr,qs,qg,den,p,delz,delt,   &
                         g,cpd,cpv,rd,rv,t0c,ep1,ep2,qmin,xls, &
