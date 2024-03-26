@@ -1,8 +1,8 @@
 [ccpp-table-properties]
   name = mp_wsm6
   type = scheme
-  # dependencies = ./../ccpp_kind_types.F
-  dependencies = ../mmm_kinds.F90,module_libmassv.F,mp_radar.F
+  dependencies = ../hooks/mmm_kinds.F90
+  dependencies = module_libmassv.F90,mp_radar.F90
 
 ########################################################################
 [ccpp-arg-table]
@@ -15,7 +15,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [denr]
   standard_name = fresh_liquid_water_density_at_0c
   long_name = density of liquid water
@@ -23,7 +22,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [dens]
   standard_name = density_of_snow
   long_name = density of snow
@@ -31,7 +29,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [cl]
   standard_name = specific_heat_of_liquid_water_at_constant_pressure
   long_name = specific heat of liquid water at constant pressure
@@ -39,7 +36,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [cpv]
   standard_name = four_times_gas_constant_water_vapor
   long_name = four times the gas constant water vapor
@@ -48,7 +44,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [hail_opt]
   standard_name = flag_for_hail_instead_of_graupel_parameters
   long_name = flag for hail instead of graupel parameters (graupel if false)
@@ -56,7 +51,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [errmsg]
   standard_name = ccpp_error_message
   long_name = error message for error handling in CCPP
@@ -65,7 +59,6 @@
   type = character
   kind = len=*
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_code
   long_name = error code for error handling in CCPP
@@ -73,7 +66,6 @@
   dimensions = ()
   type = integer
   intent = out
-  optional = F
 
 ########################################################################
 [ccpp-arg-table]
@@ -87,7 +79,6 @@
   type = character
   kind = len=*
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_code
   long_name = error code for error handling in CCPP
@@ -95,7 +86,6 @@
   dimensions = ()
   type = integer
   intent = out
-  optional = F
 
 ########################################################################
 [ccpp-arg-table]
@@ -108,7 +98,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [q]
   standard_name = water_vapor_mixing_ratio
   long_name = water vapor mixing ratio
@@ -116,7 +105,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [qc]
   standard_name = cloud_condensed_water_mixing_ratio
   long_name = cloud condensed water mixing ratio
@@ -124,7 +112,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [qi]
   standard_name = ice_water_mixing_ratio
   long_name = ice water mixing ratio
@@ -132,7 +119,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [qr]
   standard_name = rain_mixing_ratio
   long_name = rain mixing ratio
@@ -140,7 +126,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [qs]
   standard_name = snow_mixing_ratio
   long_name = snow mixing ratio
@@ -148,7 +133,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [qg]
   standard_name = graupel_mixing_ratio
   long_name = graupel mixing ratio
@@ -156,7 +140,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [den]
   standard_name = air_density
   long_name = air density
@@ -164,7 +147,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [p]
   standard_name = air_pressure
   long_name = air pressure
@@ -172,7 +154,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [delz]
   standard_name = layer_thickness
   long_name = layer thickness
@@ -180,15 +161,13 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [delt]
-  standard_name = time_step_for_physics
+  standard_name = timestep_for_physics
   long_name = time step for physics
   units = s
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [g]
   standard_name = gravitational_acceleration
   long_name = gravitational acceleration
@@ -196,7 +175,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [cpd]
   standard_name = specific_heat_of_dry_air_at_constant_pressure
   long_name = specific heat of dry air at constant pressure
@@ -204,7 +182,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [cpv]
   standard_name = specific_heat_of_dry_air_at_constant_volume
   long_name = specific heat of dry air at constant volume
@@ -212,7 +189,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [rd]
   standard_name = gas_constant_of_dry_air
   long_name = ideal gas constant for dry air
@@ -220,7 +196,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [rv]
   standard_name = gas_constant_water_vapor
   long_name = gas constant water vapor
@@ -228,7 +203,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [t0c]
   standard_name = temperature_at_zero_celsius
   long_name = temperature at 0 degrees Celsius
@@ -236,15 +210,13 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [ep1]
   standard_name = ratio_of_water_vapor_to_dry_air_gas_constants_minus_one
   long_name = ratio of water vapor to dry air gas constants minus one
-  units = none
+  units = 1
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [ep2]
   standard_name = ratio_of_dry_air_to_water_vapor_gas_constants
   long_name = ratio of dry air to water vapor gas constants
@@ -252,7 +224,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [qmin]
   standard_name = minimum_value_of_water_vapor_mixing_ratio
   long_name = minimum value of water vapor mixing ratio
@@ -260,7 +231,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [xls]
   standard_name = latent_heat_of_sublimation_of_water_at_0C
   long_name = latent heat of sublimation of water at 0C
@@ -268,7 +238,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [xlv0]
   standard_name = latent_heat_of_vaporization_of_water_at_0C
   long_name = latent heat of vaporization of water at 0C
@@ -276,7 +245,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [xlf0]
   standard_name = latent_heat_of_fusion_of_water_at_0C
   long_name = latent heat of fusion of water at 0C
@@ -284,7 +252,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [den0]
   standard_name = density_of_dry_air
   long_name = density of dry air
@@ -292,7 +259,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [denr]
   standard_name = fresh_liquid_water_density_at_0c
   long_name = density of liquid water
@@ -300,7 +266,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [cliq]
   standard_name = specific_heat_of_liquid_water_at_constant_pressure
   long_name = specific heat of liquid water at constant pressure
@@ -308,7 +273,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [cice]
   standard_name = specific_heat_of_ice_at_constant_pressure
   long_name = specific heat of ice at constant pressure
@@ -316,7 +280,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [psat]
   standard_name = saturation_pressure_at_triple_point_of_water
   long_name = saturation pressure at triple point of water
@@ -324,7 +287,6 @@
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
-  optional = F
 [rain]
   standard_name = accumulated_lwe_thickness_of_precipitation_amount
   long_name = accumulated total precipitation
@@ -332,7 +294,6 @@
   dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [rainncv]
   standard_name = lwe_thickness_of_precipitation_amount_on_dynamics_timestep
   long_name = total rain at this time step
@@ -340,7 +301,6 @@
   dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [sr]
   standard_name = ratio_of_snowfall_to_rainfall
   long_name = ratio of snowfall to large-scale rainfall
@@ -348,7 +308,6 @@
   dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
-  optional = F
 [snow]
   standard_name = cumulative_lwe_thickness_of_surface_snow_amount
   long_name = accumulated surface snow
@@ -356,7 +315,6 @@
   dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
-  optional = T
 [snowncv]
   standard_name = snow_mass_on_previous_timestep
   long_name = snow amount from previous timestep
@@ -364,7 +322,6 @@
   dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
-  optional = T
 [graupel]
   standard_name = cumulative_lwe_thickness_of_surface_graupel_amount
   long_name = accumulated surface graupel
@@ -372,7 +329,6 @@
   dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
-  optional = T
 [graupelncv]
   standard_name = lwe_thickness_of_graupel_amount_on_previous_timestep
   long_name = graupel amount from previous timestep
@@ -380,7 +336,6 @@
   dimensions = (horizontal_loop_extent)
   type = real | kind = kind_phys
   intent = inout
-  optional = T
 [rainprod2d]
   standard_name = grid_scale_production_of_rain
   long_name = grid-scale production of rain
@@ -388,7 +343,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = inout
-  optional = T
 [evapprod2d]
   standard_name = grid_scale_production_of_evaporation
   long_name = grid-scale production of evaporation
@@ -396,7 +350,6 @@
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = inout
-  optional = T
 [its]
   standard_name = horizontal_begin
   long_name = starting index in the x direction for this MPI rank
@@ -404,7 +357,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [ite]
   standard_name = number_of_points_in_x_direction_for_this_MPI_rank
   long_name = number of points in x direction for this MPI rank
@@ -412,7 +364,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [kts]
   standard_name = vertical_layer_dimension
   long_name = number of vertical levels
@@ -420,7 +371,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [kte]
   standard_name = vertical_dimension_end
   long_name = vertical dimension end
@@ -428,7 +378,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [errmsg]
   standard_name = ccpp_error_message
   long_name = error message for error handling in CCPP
@@ -437,7 +386,6 @@
   type = character
   kind = len=*
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_code
   long_name = error code for error handling in CCPP
@@ -445,6 +393,5 @@
   dimensions = ()
   type = integer
   intent = out
-  optional = F
 
 ########################################################################
