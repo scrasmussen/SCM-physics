@@ -365,9 +365,9 @@
   type = integer
   intent = in
 [kts]
-  standard_name = vertical_layer_dimension
-  long_name = number of vertical levels
-  units = count
+  standard_name = vertical_dimension_start
+  long_name = vertical dimension start
+  units = none
   dimensions = ()
   type = integer
   intent = in
