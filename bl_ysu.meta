@@ -1,7 +1,7 @@
 [ccpp-table-properties]
   name = bl_ysu
   type = scheme
-  dependencies = ../machine.F
+  dependencies = ../hooks/machine.F
 
 ########################################################################
 [ccpp-arg-table]
@@ -31,7 +31,7 @@
   type = real
   kind = kind_phys
   intent = in
-[qvx] 
+[qvx]
   standard_name = water_vapor_mixing_ratio
   long_name = water vapor mixing ratio
   units = kg kg-1
@@ -39,6 +39,7 @@
   type = real
   kind = kind_phys
   intent = in
+  optional = T
 [qcx]
   standard_name = cloud_condensed_water_mixing_ratio
   long_name = cloud condensed water mixing ratio
@@ -47,6 +48,7 @@
   type = real
   kind = kind_phys
   intent = in
+  optional = T
 [qix]
   standard_name = ice_water_mixing_ratio
   long_name = ice water mixing ratio
@@ -55,6 +57,7 @@
   type = real
   kind = kind_phys
   intent = in
+  optional = T
 [nmix]
   standard_name = number_of_tracers
   long_name = number of tracers
@@ -269,7 +272,7 @@
   intent = in
 [ust]
   standard_name = surface_friction_velocity
-  long_name = surface friction velocity	
+  long_name = surface friction velocity
   units = m s-1
   dimensions = (horizontal_loop_extent)
   type = real
@@ -347,6 +350,7 @@
   type = real
   kind = kind_phys
   intent = in
+  optional = T
 [qfx]
   standard_name = kinematic_surface_upward_latent_heat_flux
   long_name = kinematic surface upward latent heat flux
@@ -355,6 +359,7 @@
   type = real
   kind = kind_phys
   intent = in
+  optional = T
 [wspd]
   standard_name = wind_speed_at_lowest_model_layer
   long_name = wind speed at lowest model level
@@ -459,7 +464,7 @@
 [its]
   standard_name = horizontal_loop_begin
   long_name = horizontal loop begin
-  units = none 
+  units = none
   dimensions = ()
   type = integer
   intent = in

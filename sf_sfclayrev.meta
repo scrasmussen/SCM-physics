@@ -1,7 +1,7 @@
 [ccpp-table-properties]
   name = sf_sfclayrev
   type = scheme
-  dependencies = ../machine.F
+  dependencies = ../hooks/machine.F
 
 ########################################################################
 [ccpp-arg-table]
@@ -112,7 +112,7 @@
   long_name = latent heat of vaporization of water at 0C
   units = J kg-1
   dimensions = ()
-  type = real 
+  type = real
   kind = kind_phys
   intent = in
 [psfcpa]
@@ -125,13 +125,13 @@
   intent = in
 [chs]
   standard_name = surface_exchange_coefficient_for_heat_at_0m
-  long_name = exchange coefficient for heat 
+  long_name = exchange coefficient for heat
   units = m s-1
   dimensions = (horizontal_loop_extent)
   type = real
   kind = kind_phys
   intent = inout
-[chs2] 
+[chs2]
   standard_name = surface_exchange_coefficient_for_heat_at_2m
   long_name = exchange coefficient for heat at 2 meters
   units = m s-1
@@ -139,7 +139,8 @@
   type = real
   kind = kind_phys
   intent = inout
-[cqs2] 
+  optional = T
+[cqs2]
   standard_name = surface_exchange_coefficient_for_moisture_at_2m
   long_name = exchange coefficient for moisture at 2 meters
   units = m s-1
@@ -147,6 +148,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = T
 [cpm]
   standard_name = heat_capacity_at_constant_pressure_for_moist_air
   long_name = heat capacity at constant pressure for moist air
@@ -171,6 +173,7 @@
   type = real
   kind = kind_phys
   intent = out
+  optional = T
 [znt]
   standard_name = surface_roughness_length_in_m
   long_name = surface roughness length in meters
@@ -203,6 +206,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = T
 [mol]
   standard_name = surface_temperature_scale
   long_name = temperature scale
@@ -211,6 +215,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = T
 [regime]
   standard_name = pbl_regime_categories
   long_name = pbl regime categories
@@ -224,7 +229,7 @@
   long_name = Monin-Obukhov similarity function for momentum
   units = none
   dimensions = (horizontal_loop_extent)
-  type = real 
+  type = real
   kind = kind_phys
   intent = inout
 [psim10]
@@ -240,7 +245,7 @@
   long_name = Monin-Obukhov similarity function for heat
   units = none
   dimensions = (horizontal_loop_extent)
-  type = real 
+  type = real
   kind = kind_phys
   intent = inout
 [psih2]
@@ -251,20 +256,20 @@
   type = real
   kind = kind_phys
   intent = inout
-[fm] 
+[fm]
   standard_name = Monin_Obukhov_similarity_parameter_for_momentum
-  long_name = Monin-Obukhov similarity parameter for momentum 
+  long_name = Monin-Obukhov similarity parameter for momentum
   units = none
   dimensions = (horizontal_loop_extent)
-  type = real  
+  type = real
   kind = kind_phys
   intent = inout
 [fh]
   standard_name = Monin_Obukhov_similarity_parameter_for_heat
-  long_name = Monin-Obukhov similarity parameter for heat 
+  long_name = Monin-Obukhov similarity parameter for heat
   units = none
   dimensions = (horizontal_loop_extent)
-  type = real  
+  type = real
   kind = kind_phys
   intent = inout
 [xland]
@@ -283,6 +288,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = T
 [qfx]
   standard_name = kinematic_surface_upward_latent_heat_flux
   long_name = kinematic surface upward latent heat flux
@@ -291,6 +297,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = T
 [tsk]
   standard_name = surface_skin_temperature
   long_name = surface skin temperature
@@ -325,7 +332,7 @@
   intent = out
 [t2]
   standard_name = air_temperature_at_2m
-  long_name = 2 meter temperature 
+  long_name = 2 meter temperature
   units = K
   dimensions = (horizontal_loop_extent)
   type = real
@@ -338,7 +345,7 @@
   dimensions = (horizontal_loop_extent)
   type = real
   kind = kind_phys
-  intent = out 
+  intent = out
 [flhc]
   standard_name = surface_exchange_coefficient_for_heat
   long_name = surface exchange coefficient for heat multiplied by cp and density
@@ -347,6 +354,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = T
 [flqc]
   standard_name = surface_exchange_coefficient_for_moisture
   long_name = surface exchange coefficient for moisture multiplied by moisture availability and density
@@ -355,6 +363,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = T
 [qgh]
   standard_name = saturation_mixing_ratio_at_lowest_model_level
   long_name = saturation water vapor mixing ratio at lowest model level
@@ -379,9 +388,10 @@
   type = real
   kind = kind_phys
   intent = out
+  optional = T
 [gz1oz0]
   standard_name = log_of_z_over_roughness_length
-  long_name = log of z over z0, where z0 is roughness length 
+  long_name = log of z over z0, where z0 is roughness length
   units = none
   dimensions = (horizontal_loop_extent)
   type = real
@@ -446,7 +456,7 @@
   long_name = constant for saturation vapor pressure calculation
   units = K
   dimensions = ()
-  type = real 
+  type = real
   kind = kind_phys
   intent = in
 [ep1]
@@ -489,7 +499,7 @@
   kind = kind_phys
   intent = in
 [p1000mb]
-  standard_name = pressure_value_at_1000_hPa 
+  standard_name = pressure_value_at_1000_hPa
   long_name = pressure value at 1000 hPa
   units = Pa
   dimensions = ()
@@ -548,12 +558,13 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = T
 [ck]
   standard_name = surface_drag_coefficient_for_heat_and_moisture_in_air_at_10m
   long_name = enthalpy exchange coefficient at 10 meters
   units = none
   dimensions = (horizontal_loop_extent)
-  type = real 
+  type = real
   kind = kind_phys
   intent = out
 [cka]
@@ -561,7 +572,7 @@
   long_name = enthalpy exchange coefficient at the lowest model level
   units = none
   dimensions = (horizontal_loop_extent)
-  type = real 
+  type = real
   kind = kind_phys
   intent = out
 [cd]
@@ -569,7 +580,7 @@
   long_name = momentum exchange coefficient at 10 meters
   units = none
   dimensions = (horizontal_loop_extent)
-  type = real 
+  type = real
   kind = kind_phys
   intent = out
 [cda]
@@ -577,20 +588,20 @@
   long_name = momentum exchange coefficient at the lowest model level
   units = none
   dimensions = (horizontal_loop_extent)
-  type = real 
+  type = real
   kind = kind_phys
   intent = out
 [its]
   standard_name = horizontal_begin
-  long_name = horizontal begin 
-  units = none 
+  long_name = horizontal begin
+  units = none
   dimensions = ()
   type = integer
   intent = in
 [ite]
   standard_name = horizontal_end
   long_name = horizontal end
-  units = none 
+  units = none
   dimensions = ()
   type = integer
   intent = in
